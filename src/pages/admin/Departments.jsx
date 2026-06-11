@@ -10,6 +10,7 @@ import {
   deleteDepartmentApi,
 } from "../../api/departmentApi.js";
 import { getEmployeesApi } from "../../api/employeeApi.js";
+import { departmentSchema, validate } from "../../validation/schemas.js";
 
 function Departments() {
   const [departments, setDepartments] = useState([]);
@@ -20,6 +21,7 @@ function Departments() {
   const [isOpen, setIsOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({ name: "", head: "" });
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -52,17 +54,32 @@ function Departments() {
   function openAdd() {
     setEditing(null);
     setForm({ name: "", head: "" });
+    setFormErrors({});
     setIsOpen(true);
   }
 
   function openEdit(dept) {
     setEditing(dept);
     setForm({ name: dept.name, head: dept.head });
+    setFormErrors({});
     setIsOpen(true);
+  }
+
+  function closeModal() {
+    setFormErrors({});
+    setIsOpen(false);
   }
 
   async function handleSave(e) {
     e.preventDefault();
+
+    const check = validate(departmentSchema, form);
+    if (!check.valid) {
+      setFormErrors(check.errors);
+      return;
+    }
+    setFormErrors({});
+
     setSaving(true);
     try {
       if (editing) {
@@ -111,25 +128,27 @@ function Departments() {
 
       <Modal
         isOpen={isOpen}
-        onClose={() => setIsOpen(false)}
+        onClose={closeModal}
         title={editing ? "Edit Department" : "Add Department"}
       >
-        <form onSubmit={handleSave}>
+        <form onSubmit={handleSave} noValidate>
           <Input
             label="Department Name"
             value={form.name}
             onChange={(e) => setForm({ ...form, name: e.target.value })}
             placeholder="Engineering"
+            error={formErrors.name}
           />
           <Input
             label="Department Head"
             value={form.head}
             onChange={(e) => setForm({ ...form, head: e.target.value })}
             placeholder="Manager name"
+            error={formErrors.head}
           />
           <div className="flex gap-3 mt-2">
             <Button type="submit" color="green">{saving ? "Saving..." : "Save"}</Button>
-            <Button color="gray" onClick={() => setIsOpen(false)}>Cancel</Button>
+            <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>
       </Modal>

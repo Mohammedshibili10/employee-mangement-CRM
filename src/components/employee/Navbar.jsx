@@ -1,20 +1,24 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
-import { logout as logoutAction } from "../../redux/slices/authSlice.js";
+import { useDispatch, useSelector } from "react-redux";
+import { logout as logoutAction, setProfilePhoto } from "../../redux/slices/authSlice.js";
 import { getMeApi } from "../../api/authApi.js";
 
 function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  const photo = useSelector((s) => s.auth.profilePhoto);
   const [open, setOpen] = useState(false);
   const [me, setMe] = useState(null);
 
   useEffect(() => {
     getMeApi()
-      .then(setMe)
+      .then((profile) => {
+        setMe(profile);
+        dispatch(setProfilePhoto(profile.profilePhoto || null));
+      })
       .catch((err) => console.error("Failed to load profile:", err));
-  }, []);
+  }, [dispatch]);
 
   function logout() {
     dispatch(logoutAction());
@@ -48,12 +52,16 @@ function Navbar({ onMenuClick }) {
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-3"
+          className="flex items-center gap-2 sm:gap-3"
         >
-          <span className="text-sm text-slate-600">{name}</span>
-          <div className="h-9 w-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-medium">
-            {initial}
-          </div>
+          <span className="hidden sm:inline text-sm text-slate-600 max-w-[140px] truncate">{name}</span>
+          {photo ? (
+            <img src={photo} alt={name} className="h-9 w-9 shrink-0 rounded-full object-cover" />
+          ) : (
+            <div className="h-9 w-9 shrink-0 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-medium">
+              {initial}
+            </div>
+          )}
         </button>
 
         {open && (
@@ -61,11 +69,11 @@ function Navbar({ onMenuClick }) {
 
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
-            <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-64 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
 
               <div className="px-4 py-3 border-b border-slate-100">
-                <p className="font-medium text-slate-800">{name}</p>
-                <p className="text-xs text-slate-500">{email}</p>
+                <p className="font-medium text-slate-800 truncate">{name}</p>
+                <p className="text-xs text-slate-500 truncate">{email}</p>
               </div>
 
               <div className="px-4 py-3 border-b border-slate-100 text-xs space-y-1">

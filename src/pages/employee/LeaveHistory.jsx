@@ -5,6 +5,7 @@ import Input from "../../components/common/Input.jsx";
 import Button from "../../components/common/Button.jsx";
 import { getMeApi } from "../../api/authApi.js";
 import { getLeavesApi, applyLeaveApi } from "../../api/leaveApi.js";
+import { leaveSchema, validate } from "../../validation/schemas.js";
 
 function statusClass(status) {
   if (status === "approved") return "bg-green-100 text-green-700";
@@ -25,7 +26,19 @@ function LeaveHistory() {
 
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
+
+  function openModal() {
+    setForm(emptyForm);
+    setFormErrors({});
+    setOpen(true);
+  }
+
+  function closeModal() {
+    setFormErrors({});
+    setOpen(false);
+  }
 
   useEffect(() => {
     async function loadData() {
@@ -55,6 +68,14 @@ function LeaveHistory() {
 
   async function handleApply(e) {
     e.preventDefault();
+
+    const check = validate(leaveSchema, form);
+    if (!check.valid) {
+      setFormErrors(check.errors);
+      return;
+    }
+    setFormErrors({});
+
     if (!employeeId) {
       alert("Could not find your employee profile. Please try again.");
       return;
@@ -83,7 +104,7 @@ function LeaveHistory() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold text-slate-800">Leave History</h2>
-        <Button color="green" onClick={() => setOpen(true)}>+ Apply Leave</Button>
+        <Button color="green" onClick={openModal}>+ Apply Leave</Button>
       </div>
 
       {loading && <p className="text-center text-slate-500 mt-6">Loading leave history...</p>}
@@ -115,8 +136,8 @@ function LeaveHistory() {
         </>
       )}
 
-      <Modal isOpen={open} onClose={() => setOpen(false)} title="Apply Leave">
-        <form onSubmit={handleApply}>
+      <Modal isOpen={open} onClose={closeModal} title="Apply Leave">
+        <form onSubmit={handleApply} noValidate>
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
@@ -133,8 +154,8 @@ function LeaveHistory() {
             </select>
           </div>
 
-          <Input label="Start Date" name="from" type="date" value={form.from} onChange={handleChange} />
-          <Input label="End Date" name="to" type="date" value={form.to} onChange={handleChange} />
+          <Input label="Start Date" name="from" type="date" value={form.from} onChange={handleChange} error={formErrors.from} />
+          <Input label="End Date" name="to" type="date" value={form.to} onChange={handleChange} error={formErrors.to} />
 
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
@@ -144,13 +165,16 @@ function LeaveHistory() {
               onChange={handleChange}
               rows="3"
               placeholder="Write your reason..."
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                formErrors.reason ? "border-rose-400 focus:ring-rose-300" : "border-slate-300 focus:ring-green-500"
+              }`}
             />
+            {formErrors.reason && <p className="text-xs text-rose-600 mt-1">{formErrors.reason}</p>}
           </div>
 
           <div className="flex gap-3 mt-2">
             <Button type="submit" color="green">{saving ? "Submitting..." : "Submit Request"}</Button>
-            <Button color="gray" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>
       </Modal>

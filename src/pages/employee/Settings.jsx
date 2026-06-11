@@ -3,6 +3,7 @@ import Modal from "../../components/common/Modal.jsx";
 import Input from "../../components/common/Input.jsx";
 import Button from "../../components/common/Button.jsx";
 import { getMeApi, changePasswordApi } from "../../api/authApi.js";
+import { changePasswordSchema, validate } from "../../validation/schemas.js";
 
 const emptyPassword = { current: "", next: "" };
 
@@ -11,6 +12,7 @@ function Settings() {
 
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState(emptyPassword);
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   useEffect(() => {
@@ -19,8 +21,27 @@ function Settings() {
       .catch((err) => console.error("Failed to load account:", err));
   }, []);
 
+  function openModal() {
+    setPassword(emptyPassword);
+    setFormErrors({});
+    setOpen(true);
+  }
+
+  function closeModal() {
+    setFormErrors({});
+    setOpen(false);
+  }
+
   async function handleChangePassword(e) {
     e.preventDefault();
+
+    const check = validate(changePasswordSchema, password);
+    if (!check.valid) {
+      setFormErrors(check.errors);
+      return;
+    }
+    setFormErrors({});
+
     try {
       setSaving(true);
       await changePasswordApi({
@@ -59,17 +80,18 @@ function Settings() {
         </div>
 
         <div className="mt-5">
-          <Button color="green" onClick={() => setOpen(true)}>Change Password</Button>
+          <Button color="green" onClick={openModal}>Change Password</Button>
         </div>
       </div>
 
-      <Modal isOpen={open} onClose={() => setOpen(false)} title="Change Password">
-        <form onSubmit={handleChangePassword}>
+      <Modal isOpen={open} onClose={closeModal} title="Change Password">
+        <form onSubmit={handleChangePassword} noValidate>
           <Input
             label="Current Password"
             type="password"
             value={password.current}
             onChange={(e) => setPassword({ ...password, current: e.target.value })}
+            error={formErrors.current}
           />
           <Input
             label="New Password"
@@ -77,10 +99,11 @@ function Settings() {
             value={password.next}
             onChange={(e) => setPassword({ ...password, next: e.target.value })}
             placeholder="At least 6 characters"
+            error={formErrors.next}
           />
           <div className="flex gap-3 mt-2">
             <Button type="submit" color="green">{saving ? "Updating..." : "Update Password"}</Button>
-            <Button color="gray" onClick={() => setOpen(false)}>Cancel</Button>
+            <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>
       </Modal>

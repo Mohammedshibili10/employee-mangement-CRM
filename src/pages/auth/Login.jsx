@@ -5,11 +5,13 @@ import Input from "../../components/common/Input.jsx";
 import Logo from "../../components/common/Logo.jsx";
 import { loginStart, loginSuccess, loginFailure } from "../../redux/slices/authSlice.js";
 import { loginApi } from "../../api/authApi.js";
+import { loginSchema, validate } from "../../validation/schemas.js";
 
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const [loading, setLoading] = useState(false);
+  const [errors, setErrors] = useState({});
   const [input, setInput] = useState({
     email: "",
     password: "",
@@ -21,6 +23,14 @@ function Login() {
 
   const handleLogin = async (e) => {
     e.preventDefault();
+
+    const check = validate(loginSchema, input);
+    if (!check.valid) {
+      setErrors(check.errors);
+      return;
+    }
+    setErrors({});
+
     try {
       setLoading(true);
       dispatch(loginStart());
@@ -65,6 +75,7 @@ function Login() {
             value={input.email}
             onChange={eventHandlerChange}
             placeholder="you@company.com"
+            error={errors.email}
           />
           <Input
             label="Password"
@@ -73,6 +84,7 @@ function Login() {
             value={input.password}
             onChange={eventHandlerChange}
             placeholder="••••••••"
+            error={errors.password}
           />
 
           <button

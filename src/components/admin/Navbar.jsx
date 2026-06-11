@@ -46,10 +46,10 @@ function Navbar({ onMenuClick }) {
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
-          className="flex items-center gap-3"
+          className="flex items-center gap-2 sm:gap-3"
         >
-          <span className="text-sm text-slate-600">{name}</span>
-          <div className="h-9 w-9 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-medium">
+          <span className="hidden sm:inline text-sm text-slate-600 max-w-[140px] truncate">{name}</span>
+          <div className="h-9 w-9 shrink-0 rounded-full bg-green-600 text-white flex items-center justify-center text-sm font-medium">
             {initial}
           </div>
         </button>
@@ -59,11 +59,11 @@ function Navbar({ onMenuClick }) {
 
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
-            <div className="absolute right-0 mt-2 w-60 bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
+            <div className="absolute right-0 mt-2 w-60 max-w-[calc(100vw-1.5rem)] bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
 
               <div className="px-4 py-3 border-b border-slate-100">
-                <p className="font-medium text-slate-800">{name}</p>
-                <p className="text-xs text-slate-500">{email}</p>
+                <p className="font-medium text-slate-800 truncate">{name}</p>
+                <p className="text-xs text-slate-500 truncate">{email}</p>
               </div>
               <div className="py-1 text-sm">
                 <button

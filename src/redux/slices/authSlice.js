@@ -6,6 +6,7 @@ const savedUser = localStorage.getItem('user');
 const initialState = {
     user: savedUser ? JSON.parse(savedUser) : null,
     token: savedToken ? savedToken : null,
+    profilePhoto: null,
     loading: false,
     error: null,
 };
@@ -35,9 +36,14 @@ const authSlice = createSlice({
             state.error = action.payload;
         },
 
+        setProfilePhoto: (state, action) => {
+            state.profilePhoto = action.payload;
+        },
+
         logout: (state) => {
             state.user = null;
             state.token = null;
+            state.profilePhoto = null;
             state.error = null;
 
             localStorage.removeItem('token');
@@ -46,5 +52,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { loginStart, loginSuccess, loginFailure, logout } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, setProfilePhoto, logout } = authSlice.actions;
 export default authSlice.reducer;

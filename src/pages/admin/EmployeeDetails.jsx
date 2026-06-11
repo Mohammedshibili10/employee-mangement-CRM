@@ -65,9 +65,17 @@ function EmployeeDetails() {
       </div>
 
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-5 flex flex-col sm:flex-row sm:items-center gap-4">
-        <div className="h-16 w-16 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl font-bold">
-          {employee.name.charAt(0).toUpperCase()}
-        </div>
+        {employee.profilePhoto ? (
+          <img
+            src={employee.profilePhoto}
+            alt={employee.name}
+            className="h-16 w-16 rounded-full object-cover border border-slate-200"
+          />
+        ) : (
+          <div className="h-16 w-16 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl font-bold">
+            {employee.name.charAt(0).toUpperCase()}
+          </div>
+        )}
         <div className="flex-1">
           <h3 className="text-lg font-semibold text-slate-800">{employee.name}</h3>
           <p className="text-sm text-slate-500">{employee.designation}</p>

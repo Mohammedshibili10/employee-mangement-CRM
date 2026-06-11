@@ -35,3 +35,21 @@ export const deleteEmployeeApi = async (id) => {
     });
     return res.data;
 }
+
+// Employee uploads/updates their OWN profile photo (image = base64 data URL).
+export const updateMyPhotoApi = async (image) => {
+    const token = localStorage.getItem('token');
+    const res = await axios.put('/api/employees/me/photo', { image }, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+}
+
+// Employee removes their OWN profile photo.
+export const deleteMyPhotoApi = async () => {
+    const token = localStorage.getItem('token');
+    const res = await axios.delete('/api/employees/me/photo', {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+}

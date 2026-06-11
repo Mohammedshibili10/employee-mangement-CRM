@@ -6,6 +6,7 @@ import Modal from "../../components/common/Modal.jsx";
 import Input from "../../components/common/Input.jsx";
 import { getEmployeesApi, createEmployeeApi, deleteEmployeeApi } from "../../api/employeeApi.js";
 import { getDepartmentsApi } from "../../api/departmentApi.js";
+import { employeeSchema, validate } from "../../validation/schemas.js";
 
 const emptyForm = {
   name: "",
@@ -32,9 +33,21 @@ function Employees() {
 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
+  const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
 
   const [created, setCreated] = useState(null);
+
+  function openAdd() {
+    setForm(emptyForm);
+    setFormErrors({});
+    setAddOpen(true);
+  }
+
+  function closeAdd() {
+    setFormErrors({});
+    setAddOpen(false);
+  }
 
   useEffect(() => {
     fetchEmployees();
@@ -70,6 +83,14 @@ function Employees() {
 
   async function handleAdd(e) {
     e.preventDefault();
+
+    const check = validate(employeeSchema, form);
+    if (!check.valid) {
+      setFormErrors(check.errors);
+      return;
+    }
+    setFormErrors({});
+
     setSaving(true);
     try {
 
@@ -116,7 +137,7 @@ function Employees() {
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-bold text-slate-800">Employees</h2>
-        <Button color="green" onClick={() => setAddOpen(true)}>
+        <Button color="green" onClick={openAdd}>
           + Add Employee
         </Button>
       </div>
@@ -161,18 +182,18 @@ function Employees() {
 
       <Modal
         isOpen={addOpen}
-        onClose={() => setAddOpen(false)}
+        onClose={closeAdd}
         title="Add Employee"
         size="lg"
       >
-        <form onSubmit={handleAdd}>
+        <form onSubmit={handleAdd} noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
-            <Input label="Full Name" name="name" value={form.name} onChange={handleChange} placeholder="John Doe" />
-            <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" />
+            <Input label="Full Name" name="name" value={form.name} onChange={handleChange} placeholder="John Doe" error={formErrors.name} />
+            <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" error={formErrors.email} />
 
-            <Input label="Login Password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="At least 6 characters" />
+            <Input label="Login Password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="At least 6 characters" error={formErrors.password} />
 
-            <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="9876543210" />
+            <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="9876543210" error={formErrors.phone} />
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
@@ -180,17 +201,20 @@ function Employees() {
                 name="department"
                 value={form.department}
                 onChange={handleChange}
-                className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                  formErrors.department ? "border-rose-400 focus:ring-rose-300" : "border-slate-300 focus:ring-green-500"
+                }`}
               >
                 <option value="">Select Department</option>
                 {departments.map((d) => (
                   <option key={d._id} value={d._id}>{d.name}</option>
                 ))}
               </select>
+              {formErrors.department && <p className="text-xs text-rose-600 mt-1">{formErrors.department}</p>}
             </div>
 
-            <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Developer" />
-            <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} />
+            <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Developer" error={formErrors.designation} />
+            <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} error={formErrors.joiningDate} />
 
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
@@ -218,7 +242,7 @@ function Employees() {
 
           <div className="flex gap-3 mt-4">
             <Button type="submit" color="green">{saving ? "Saving..." : "Create Employee"}</Button>
-            <Button color="gray" onClick={() => setAddOpen(false)}>Cancel</Button>
+            <Button color="gray" onClick={closeAdd}>Cancel</Button>
           </div>
         </form>
       </Modal>
