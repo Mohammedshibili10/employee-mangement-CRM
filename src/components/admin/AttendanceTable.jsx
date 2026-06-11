@@ -1,6 +1,5 @@
 import Table from "../common/Table.jsx";
 
-// Picks a color for each attendance status (backend uses lowercase).
 function statusClass(status) {
   if (status === "present") return "bg-green-100 text-green-700";
   if (status === "late") return "bg-amber-100 text-amber-700";
@@ -8,17 +7,14 @@ function statusClass(status) {
   return "bg-slate-100 text-slate-600";
 }
 
-// Show a date like "11 Jun 2026", or "-" if missing.
 function formatDate(value) {
   return value ? new Date(value).toLocaleDateString() : "-";
 }
 
-// Show a time like "9:05 AM", or "-" if missing.
 function formatTime(value) {
   return value ? new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
 }
 
-// Show overtime like "1h 30m", or "-" if none.
 function formatOvertime(row) {
   if (!row.overtime || !row.overtimeMinutes) return "-";
   const h = Math.floor(row.overtimeMinutes / 60);

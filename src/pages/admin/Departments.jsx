@@ -22,7 +22,6 @@ function Departments() {
   const [form, setForm] = useState({ name: "", head: "" });
   const [saving, setSaving] = useState(false);
 
-  // Load departments + employees when the page opens.
   useEffect(() => {
     fetchData();
   }, []);
@@ -31,7 +30,6 @@ function Departments() {
     try {
       setLoading(true);
       setError(null);
-      // Load both so we can count how many employees are in each department.
       const [deptRes, empRes] = await Promise.all([
         getDepartmentsApi(),
         getEmployeesApi(),
@@ -46,8 +44,6 @@ function Departments() {
     }
   }
 
-  // Attach a live employee count to each department (the backend's stored
-  // employeeCount is not kept up to date, so we count from the employee list).
   const departmentsWithCounts = departments.map((d) => ({
     ...d,
     employeeCount: employees.filter((e) => e.department?._id === d._id).length,
@@ -65,7 +61,6 @@ function Departments() {
     setIsOpen(true);
   }
 
-  // Save = create a new department, or update the one being edited.
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
@@ -114,7 +109,6 @@ function Departments() {
         />
       )}
 
-      {/* Add / Edit popup */}
       <Modal
         isOpen={isOpen}
         onClose={() => setIsOpen(false)}

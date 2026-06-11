@@ -1,12 +1,9 @@
-
 import axios from "axios";
-
 
 export const loginApi = async (credentials) => {
   const res = await axios.post("/api/auth/login", credentials);
   return res.data;
 };
-
 
 export const getMeApi = async () => {
   const token = localStorage.getItem("token");
@@ -16,7 +13,6 @@ export const getMeApi = async () => {
   return res.data.user;
 };
 
-// Change the logged-in user's password.
 export const changePasswordApi = async (data) => {
   const token = localStorage.getItem("token");
   const res = await axios.put("/api/auth/change-password", data, {

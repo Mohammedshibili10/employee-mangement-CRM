@@ -1,8 +1,6 @@
 import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
 
-
-
 function DepartmentTable({ departments, onEdit, onDelete }) {
   return (
     <Table headers={["Department", "Head", "Employees", "Actions"]}>

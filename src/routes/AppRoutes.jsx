@@ -4,10 +4,8 @@ import { useSelector } from "react-redux";
 import AdminLayout from "../layouts/AdminLayout.jsx";
 import EmployeeLayout from "../layouts/EmployeeLayout.jsx";
 
-
 import Login from "../pages/auth/Login.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
-
 
 import AdminDashboard from "../pages/admin/Dashboard.jsx";
 import Employees from "../pages/admin/Employees.jsx";
@@ -31,7 +29,7 @@ function AppRoutes() {
 
   return (
     <Routes>
-   
+
       <Route path="/" element={<Navigate to={token ? dashboardPath : "/login"} replace />} />
 
       <Route
@@ -39,7 +37,6 @@ function AppRoutes() {
         element={token ? <Navigate to={dashboardPath} replace /> : <Login />}
       />
 
-    
       <Route element={<ProtectedRoute role="admin" />}>
         <Route path="/admin" element={<AdminLayout />}>
           <Route path="dashboard" element={<AdminDashboard />} />
@@ -53,7 +50,6 @@ function AppRoutes() {
         </Route>
       </Route>
 
-     
       <Route element={<ProtectedRoute role="employee" />}>
         <Route path="/employee" element={<EmployeeLayout />}>
           <Route path="dashboard" element={<EmployeeDashboard />} />
@@ -64,7 +60,6 @@ function AppRoutes() {
         </Route>
       </Route>
 
-     
       <Route path="*" element={<Navigate to="/login" />} />
     </Routes>
   );

@@ -9,7 +9,6 @@ function Attendance() {
   const [error, setError] = useState(null);
   const [filter, setFilter] = useState("All");
 
-  // Load attendance records and the summary when the page opens.
   useEffect(() => {
     async function loadData() {
       try {
@@ -31,7 +30,6 @@ function Attendance() {
     loadData();
   }, []);
 
-  // Filter by status (backend statuses are lowercase).
   const filtered =
     filter === "All" ? records : records.filter((row) => row.status === filter);
 
@@ -39,7 +37,6 @@ function Attendance() {
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-5">Attendance</h2>
 
-      {/* Summary boxes */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
         <div className="bg-white rounded-xl border border-slate-200 p-4 text-center">
           <p className="text-sm text-slate-500">Present</p>
@@ -55,7 +52,6 @@ function Attendance() {
         </div>
       </div>
 
-      {/* Filter */}
       <div className="mb-4">
         <select
           value={filter}

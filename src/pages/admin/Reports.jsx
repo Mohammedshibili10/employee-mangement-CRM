@@ -14,7 +14,6 @@ function formatTime(v) {
   return v ? new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
 }
 
-// Download the currently shown rows as a CSV file.
 function downloadCsv(filename, columns, rows) {
   const escape = (val) => `"${String(val ?? "").replace(/"/g, '""')}"`;
   const lines = [columns.map((c) => escape(c.label)).join(",")];
@@ -30,7 +29,6 @@ function downloadCsv(filename, columns, rows) {
   URL.revokeObjectURL(url);
 }
 
-// Each report: its title + the columns to show.
 const REPORTS = {
   employees: {
     title: "Employee Report",
@@ -68,7 +66,7 @@ const REPORTS = {
 };
 
 function Reports() {
-  const [active, setActive] = useState(null); // "employees" | "attendance" | "leaves"
+  const [active, setActive] = useState(null);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(false);
 

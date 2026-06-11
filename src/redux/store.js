@@ -1,4 +1,3 @@
-// Redux store: combines all the slices into one global store.
 import { configureStore } from '@reduxjs/toolkit';
 import authReducer from './slices/authSlice.js';
 import employeeReducer from './slices/employeeSlice.js';

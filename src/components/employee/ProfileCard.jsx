@@ -1,6 +1,4 @@
-// Shows the employee's basic profile information.
 function ProfileCard({ employee }) {
-  // small helper to show one row of info
   const Row = ({ label, value }) => (
     <div className="flex justify-between py-2 border-b border-slate-100 last:border-0">
       <span className="text-slate-500">{label}</span>

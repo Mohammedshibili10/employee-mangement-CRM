@@ -1,4 +1,3 @@
-
 function LeaveCard({ title, value, color = "blue" }) {
   const colors = {
     blue: "text-green-600",

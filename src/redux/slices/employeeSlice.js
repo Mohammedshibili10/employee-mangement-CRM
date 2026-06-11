@@ -1,4 +1,3 @@
-// Employee slice: holds the list of employees.
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {

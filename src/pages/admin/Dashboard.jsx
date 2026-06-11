@@ -35,7 +35,6 @@ function Dashboard() {
     loadData();
   }, []);
 
- 
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter((e) => e.status === "active").length;
   const totalDepartments = departments.length;
@@ -43,18 +42,15 @@ function Dashboard() {
   const approvedLeaves = leaves.filter((l) => l.status === "approved").length;
   const rejectedLeaves = leaves.filter((l) => l.status === "rejected").length;
 
-  // Count employees in each department (by department name).
   const distribution = departments.map((d) => ({
     name: d.name,
     count: employees.filter((e) => e.department?._id === d._id).length,
   }));
 
-  // The 5 most recently added employees.
   const recentEmployees = [...employees]
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 5);
 
-  // Most recent check-in / check-out records (newest first).
   const recentAttendance = [...attendanceRecords]
     .sort((a, b) => new Date(b.checkIn || b.date) - new Date(a.checkIn || a.date))
     .slice(0, 10);
@@ -63,7 +59,6 @@ function Dashboard() {
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-5">Dashboard</h2>
 
-      {/* Statistics cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         <DashboardCard title="Total Employees" value={totalEmployees} color="blue" />
         <DashboardCard title="Active Employees" value={activeEmployees} color="green" />
@@ -71,7 +66,6 @@ function Dashboard() {
         <DashboardCard title="Pending Leaves" value={pendingLeaves} color="orange" />
       </div>
 
-      {/* Simple widget boxes */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
         <div className="bg-white rounded-xl border border-slate-200 p-5">
           <h3 className="font-semibold text-slate-800 mb-3">Employee Distribution</h3>
@@ -119,7 +113,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Recently added employees */}
       <div className="bg-white rounded-xl border border-slate-200 p-5 mt-5">
         <h3 className="font-semibold text-slate-800 mb-4">Recently Added Employees</h3>
         {recentEmployees.length === 0 && (
@@ -142,7 +135,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Check-in / Check-out history (everyone) */}
       <div className="mt-5">
         <h3 className="font-semibold text-slate-800 mb-3">Check-in / Check-out History</h3>
         <AttendanceTable records={recentAttendance} />

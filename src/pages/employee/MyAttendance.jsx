@@ -34,10 +34,8 @@ function MyAttendance() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Which camera popup is open: null | "checkin" | "checkout"
   const [mode, setMode] = useState(null);
 
-  // Find the logged-in employee, then load their attendance.
   useEffect(() => {
     async function init() {
       try {
@@ -68,13 +66,11 @@ function MyAttendance() {
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-5">My Attendance</h2>
 
-      {/* Check-in / Check-out open a camera popup */}
       <div className="flex gap-3 mb-6">
         <Button color="green" onClick={() => setMode("checkin")}>Check-in</Button>
         <Button onClick={() => setMode("checkout")}>Check-out</Button>
       </div>
 
-      {/* Camera popup for check-in / check-out */}
       <Modal
         isOpen={mode !== null}
         onClose={() => setMode(null)}
@@ -91,14 +87,12 @@ function MyAttendance() {
         )}
       </Modal>
 
-      {/* Summary */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-5">
         <AttendanceCard title="Present Days" value={presentDays} note="Total" />
         <AttendanceCard title="Absent Days" value={absentDays} note="Total" />
         <AttendanceCard title="Attendance %" value={`${percent}%`} note="So far" />
       </div>
 
-      {/* History */}
       <h3 className="font-semibold text-slate-800 mb-3">Attendance History</h3>
 
       {loading && <p className="text-center text-slate-500 mt-6">Loading attendance...</p>}

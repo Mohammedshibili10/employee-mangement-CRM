@@ -1,4 +1,3 @@
-// Attendance slice: holds attendance records.
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -12,9 +11,7 @@ const attendanceSlice = createSlice({
     name: 'attendance',
     initialState,
     reducers: {
-        // TODO: add reducers here (e.g. setAttendance, markAttendance).
     },
 });
 
-// TODO: export actions here once reducers are added.
 export default attendanceSlice.reducer;

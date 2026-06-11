@@ -1,5 +1,3 @@
-// Department API calls (list, create, update, delete) go here.
-
 import axios from 'axios';
 
 export const getDepartmentsApi =async ()=>{
@@ -7,7 +5,7 @@ export const getDepartmentsApi =async ()=>{
     const res = await axios.get('/api/departments', {
         headers: { Authorization: `Bearer ${token}` },
     });
-    return res.data;        
+    return res.data;
 
 }
 

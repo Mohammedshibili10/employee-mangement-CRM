@@ -1,4 +1,3 @@
-// A small card showing an attendance number (like a percentage).
 function AttendanceCard({ title, value, note }) {
   return (
     <div className="bg-white rounded-xl border border-slate-200 p-5">

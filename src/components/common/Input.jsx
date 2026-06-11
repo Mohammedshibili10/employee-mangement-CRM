@@ -1,4 +1,3 @@
-// A labelled input field used in forms
 function Input({ label, type = "text", value, onChange, placeholder, name }) {
   return (
     <div className="mb-4">

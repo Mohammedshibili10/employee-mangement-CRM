@@ -9,12 +9,10 @@ const emptyPassword = { current: "", next: "" };
 function Settings() {
   const [me, setMe] = useState(null);
 
-  // Change Password popup
   const [open, setOpen] = useState(false);
   const [password, setPassword] = useState(emptyPassword);
   const [saving, setSaving] = useState(false);
 
-  // Load the logged-in user's account info.
   useEffect(() => {
     getMeApi()
       .then((profile) => setMe(profile))
@@ -44,7 +42,6 @@ function Settings() {
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-5">Settings</h2>
 
-      {/* Account info + actions */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-lg">
         <h3 className="font-semibold text-slate-800 mb-4">Account</h3>
 
@@ -66,7 +63,6 @@ function Settings() {
         </div>
       </div>
 
-      {/* Change Password popup */}
       <Modal isOpen={open} onClose={() => setOpen(false)} title="Change Password">
         <form onSubmit={handleChangePassword}>
           <Input

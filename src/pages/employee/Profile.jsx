@@ -6,7 +6,6 @@ function Profile() {
   const [me, setMe] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Load the logged-in employee's details from the backend.
   useEffect(() => {
     getMeApi()
       .then((profile) => setMe(profile))
@@ -22,7 +21,6 @@ function Profile() {
     return <p className="text-slate-600">Could not load profile.</p>;
   }
 
-  // Shape the data the way ProfileCard expects.
   const employee = {
     name: me.name,
     designation: me.designation || "-",

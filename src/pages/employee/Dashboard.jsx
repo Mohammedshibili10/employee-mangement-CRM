@@ -13,7 +13,6 @@ function Dashboard() {
   const [attendance, setAttendance] = useState([]);
   const [leaves, setLeaves] = useState([]);
 
-  // Load the logged-in employee's profile, attendance and leaves.
   useEffect(() => {
     async function loadData() {
       try {
@@ -48,7 +47,6 @@ function Dashboard() {
       </h2>
       <p className="text-sm text-slate-500 mb-5">{me?.designation || ""}</p>
 
-      {/* Statistics cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
         <AttendanceCard title="Attendance %" value={`${attendancePercent}%`} note="So far" />
         <LeaveCard title="Total Leaves" value={leaves.length} color="blue" />
@@ -56,7 +54,6 @@ function Dashboard() {
         <LeaveCard title="Approved Leaves" value={approvedLeaves} color="green" />
       </div>
 
-      {/* Quick actions */}
       <div className="bg-white rounded-xl border border-slate-200 p-6">
         <h3 className="font-semibold text-slate-800 mb-4">Quick Actions</h3>
         <div className="flex flex-wrap gap-3">

@@ -1,6 +1,3 @@
-// A simple popup modal.
-// Show it only when "isOpen" is true.
-// "size" can be "md" (default) or "lg" for wider forms.
 function Modal({ isOpen, onClose, title, children, size = "md" }) {
   if (!isOpen) return null;
 
@@ -21,7 +18,7 @@ function Modal({ isOpen, onClose, title, children, size = "md" }) {
             &times;
           </button>
         </div>
-        {/* Scroll if the form is tall */}
+
         <div className="p-5 max-h-[70vh] overflow-y-auto">{children}</div>
       </div>
     </div>

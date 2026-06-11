@@ -1,5 +1,3 @@
-// A small pill-style button used inside table rows.
-// color can be: green, red, blue, amber
 function ActionButton({ children, onClick, color = "green" }) {
   const colors = {
     green: "bg-green-50 text-green-700 hover:bg-green-100 border-green-200",

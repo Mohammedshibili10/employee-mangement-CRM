@@ -4,21 +4,18 @@ import { useDispatch } from "react-redux";
 import { logout as logoutAction } from "../../redux/slices/authSlice.js";
 import { getMeApi } from "../../api/authApi.js";
 
-// Top bar shown on every employee page
 function Navbar({ onMenuClick }) {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const [open, setOpen] = useState(false); // is the profile dropdown open?
-  const [me, setMe] = useState(null); // logged-in user's details from the backend
+  const [open, setOpen] = useState(false);
+  const [me, setMe] = useState(null);
 
-  // Load the logged-in user's details from the backend when the bar appears.
   useEffect(() => {
     getMeApi()
       .then(setMe)
       .catch((err) => console.error("Failed to load profile:", err));
   }, []);
 
-  // Log out: clear the saved user/token and go to the login page.
   function logout() {
     dispatch(logoutAction());
     navigate("/login", { replace: true });
@@ -33,7 +30,7 @@ function Navbar({ onMenuClick }) {
   return (
     <header className="h-16 bg-white border-b border-slate-200 flex items-center justify-between px-4 sm:px-6">
       <div className="flex items-center gap-3">
-        {/* Hamburger: opens the sidebar drawer on mobile */}
+
         <button
           onClick={onMenuClick}
           className="lg:hidden p-2 -ml-2 rounded-md text-slate-600 hover:bg-slate-100"
@@ -48,7 +45,6 @@ function Navbar({ onMenuClick }) {
         <h1 className="text-base sm:text-lg font-semibold text-slate-800">My Workspace</h1>
       </div>
 
-      {/* Profile area */}
       <div className="relative">
         <button
           onClick={() => setOpen(!open)}
@@ -60,20 +56,18 @@ function Navbar({ onMenuClick }) {
           </div>
         </button>
 
-        {/* Dropdown shown when the icon is clicked */}
         {open && (
           <>
-            {/* Click anywhere outside to close */}
+
             <div className="fixed inset-0 z-10" onClick={() => setOpen(false)} />
 
             <div className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-lg border border-slate-200 z-20 overflow-hidden">
-              {/* Name + email from the backend */}
+
               <div className="px-4 py-3 border-b border-slate-100">
                 <p className="font-medium text-slate-800">{name}</p>
                 <p className="text-xs text-slate-500">{email}</p>
               </div>
 
-              {/* Extra details from the backend */}
               <div className="px-4 py-3 border-b border-slate-100 text-xs space-y-1">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Designation</span>
@@ -85,7 +79,6 @@ function Navbar({ onMenuClick }) {
                 </div>
               </div>
 
-              {/* Links */}
               <div className="py-1 text-sm">
                 <button
                   onClick={() => {

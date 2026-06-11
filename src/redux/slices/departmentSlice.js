@@ -1,4 +1,3 @@
-// Department slice: holds the list of departments.
 import { createSlice } from '@reduxjs/toolkit';
 
 const initialState = {
@@ -11,7 +10,6 @@ const departmentSlice = createSlice({
     name: 'departments',
     initialState,
     reducers: {
-        // TODO: add reducers here (e.g. setDepartments, addDepartment).
         departmentsStart: (state) => {
             state.loading = true;
             state.error = null;

@@ -12,7 +12,6 @@ function EmployeeDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Load this employee's details from the backend.
   useEffect(() => {
     async function loadEmployee() {
       try {
@@ -30,7 +29,6 @@ function EmployeeDetails() {
     loadEmployee();
   }, [id]);
 
-  // One small info row
   const Row = ({ label, value }) => (
     <div className="flex justify-between py-2 border-b border-slate-100 last:border-0">
       <span className="text-slate-500">{label}</span>
@@ -66,7 +64,6 @@ function EmployeeDetails() {
         <Button color="gray" onClick={() => navigate("/admin/employees")}>Back</Button>
       </div>
 
-      {/* Header card */}
       <div className="bg-white rounded-xl border border-slate-200 p-6 mb-5 flex flex-col sm:flex-row sm:items-center gap-4">
         <div className="h-16 w-16 rounded-full bg-green-600 text-white flex items-center justify-center text-2xl font-bold">
           {employee.name.charAt(0).toUpperCase()}
@@ -92,7 +89,7 @@ function EmployeeDetails() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-        {/* Left: info */}
+
         <div className="space-y-5">
           <div className="bg-white rounded-xl border border-slate-200 p-6">
             <h3 className="font-semibold text-slate-800 mb-3">Personal Information</h3>
@@ -106,7 +103,6 @@ function EmployeeDetails() {
           </div>
         </div>
 
-        {/* Right: onboarding tracker */}
         <OnboardingStatus onboarding={employee.onboarding || {}} />
       </div>
     </div>

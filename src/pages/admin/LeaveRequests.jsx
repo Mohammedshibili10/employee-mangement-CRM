@@ -8,7 +8,6 @@ function LeaveRequests() {
   const [error, setError] = useState(null);
   const [tab, setTab] = useState("pending");
 
-  // Load all leave requests when the page opens.
   useEffect(() => {
     fetchLeaves();
   }, []);
@@ -49,7 +48,6 @@ function LeaveRequests() {
 
   const filtered = list.filter((req) => req.status === tab);
 
-  // Tab value (lowercase, matches backend) + the label we show on the button.
   const tabs = [
     { value: "pending", label: "Pending" },
     { value: "approved", label: "Approved" },
@@ -60,7 +58,6 @@ function LeaveRequests() {
     <div>
       <h2 className="text-2xl font-bold text-slate-800 mb-5">Leave Requests</h2>
 
-      {/* Tabs */}
       <div className="flex gap-2 mb-4">
         {tabs.map((t) => (
           <button

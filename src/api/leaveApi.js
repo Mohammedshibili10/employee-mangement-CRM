@@ -1,9 +1,7 @@
-// Leave API calls (list, apply, approve, reject).
 import axios from 'axios';
 
 export const getLeavesApi = async (employeeId) => {
     const token = localStorage.getItem('token');
-    // Pass an employeeId to get only that employee's leaves.
     const url = employeeId ? `/api/leaves?employee=${employeeId}` : '/api/leaves';
     const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },

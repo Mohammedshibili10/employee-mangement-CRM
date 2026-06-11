@@ -1,5 +1,3 @@
-// Employee API calls (list, create, get one, update, delete) go here.
-
 import axios from 'axios';
 
 export const getEmployeesApi = async () => {
@@ -36,5 +34,4 @@ export const deleteEmployeeApi = async (id) => {
         headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;
-}   
-    
+}

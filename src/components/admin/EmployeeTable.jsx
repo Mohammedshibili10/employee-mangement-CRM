@@ -1,9 +1,6 @@
 import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
 
-
-
-
 function EmployeeTable({ employees, onView, onDelete }) {
 
   return (
@@ -17,7 +14,7 @@ function EmployeeTable({ employees, onView, onDelete }) {
           </td>
           <td className="px-4 py-3 font-medium text-slate-800">{emp.name}</td>
           <td className="px-4 py-3 text-slate-600">{emp.email}</td>
-          {/* department is populated from the backend, so it's an object */}
+
           <td className="px-4 py-3 text-slate-600">{emp.department?.name || "-"}</td>
           <td className="px-4 py-3 text-slate-600">{emp.designation}</td>
           <td className="px-4 py-3">

@@ -3,8 +3,6 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/employee/Sidebar.jsx";
 import Navbar from "../components/employee/Navbar.jsx";
 
-// Wraps every employee page with a sidebar + navbar.
-// The sidebar is static on desktop and a slide-in drawer on mobile.
 function EmployeeLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

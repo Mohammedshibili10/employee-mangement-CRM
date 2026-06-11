@@ -6,7 +6,6 @@ import Logo from "../../components/common/Logo.jsx";
 import { loginStart, loginSuccess, loginFailure } from "../../redux/slices/authSlice.js";
 import { loginApi } from "../../api/authApi.js";
 
-
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -48,7 +47,7 @@ function Login() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-50 p-4">
       <div className="bg-white rounded-2xl border border-slate-200 shadow-sm w-full max-w-sm p-8">
-        {/* Logo */}
+
         <div className="mb-6">
           <div className="flex justify-center">
             <Logo />

@@ -1,4 +1,3 @@
-// Report API calls (employee, attendance, leave reports).
 import axios from 'axios';
 
 export const getEmployeeReportApi = async () => {

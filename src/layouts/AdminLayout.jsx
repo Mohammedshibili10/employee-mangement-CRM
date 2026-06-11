@@ -3,8 +3,6 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "../components/admin/Sidebar.jsx";
 import Navbar from "../components/admin/Navbar.jsx";
 
-// Wraps every admin page with a sidebar + navbar.
-// The sidebar is static on desktop and a slide-in drawer on mobile.
 function AdminLayout() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
 

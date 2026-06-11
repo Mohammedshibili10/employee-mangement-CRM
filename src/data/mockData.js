@@ -1,6 +1,3 @@
-// Simple fake data used across the app (no backend needed)
-
-// A finished onboarding (used for the seed employees)
 const fullOnboarding = {
   created: true,
   idGenerated: true,
@@ -111,7 +108,6 @@ export const leaveRequests = [
   { id: 4, name: "Karan Mehta", type: "Sick Leave", from: "2026-06-11", to: "2026-06-11", reason: "Headache", status: "Pending" },
 ];
 
-// Data for the logged-in employee view
 export const myLeaveHistory = [
   { id: 1, type: "Sick Leave", from: "2026-05-02", to: "2026-05-03", reason: "Fever", status: "Approved" },
   { id: 2, type: "Casual Leave", from: "2026-04-18", to: "2026-04-18", reason: "Personal work", status: "Approved" },
@@ -126,7 +122,6 @@ export const myAttendance = [
   { id: 5, date: "2026-06-05", checkIn: "09:00", checkOut: "18:05", status: "Present" },
 ];
 
-// The currently "logged in" employee
 export const currentEmployee = {
   name: "Aarav Sharma",
   email: "aarav@company.com",
@@ -136,19 +131,16 @@ export const currentEmployee = {
   joiningDate: "2023-01-15",
 };
 
-// Recent activities shown on the admin dashboard (newest first)
 export const activities = [
   { id: 1, text: "Sneha Iyer's profile was updated", time: "2 hours ago" },
   { id: 2, text: "Leave request approved for Aarav Sharma", time: "5 hours ago" },
   { id: 3, text: "New department 'Marketing' added", time: "1 day ago" },
 ];
 
-// Add a new activity to the top of the list
 export function addActivity(text) {
   activities.unshift({ id: Date.now() + activities.length, text, time: "Just now" });
 }
 
-// Make the next unique employee id like EMP001, EMP002 ...
 export function generateEmployeeId() {
   let max = 0;
   employees.forEach((e) => {
@@ -161,13 +153,11 @@ export function generateEmployeeId() {
   return "EMP" + String(next).padStart(3, "0");
 }
 
-// Create a new employee record from the form data.
-// Generates the id + onboarding info and logs the activities.
 export function addEmployee(form) {
   const empId = generateEmployeeId();
 
   const newEmployee = {
-    id: Date.now(), // simple unique number
+    id: Date.now(),
     empId,
     name: form.name,
     email: form.email,
@@ -188,7 +178,6 @@ export function addEmployee(form) {
 
   employees.push(newEmployee);
 
-  // Log what just happened (newest added first, so add in reverse order)
   addActivity("Employee onboarding started");
   if (form.sendWhatsApp) addActivity("WhatsApp invitation sent");
   addActivity("Employee ID " + empId + " generated");

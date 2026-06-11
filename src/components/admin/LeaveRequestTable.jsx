@@ -1,19 +1,16 @@
 import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
 
-// Backend stores status in lowercase: pending / approved / rejected.
 function statusClass(status) {
   if (status === "approved") return "bg-green-100 text-green-700";
   if (status === "rejected") return "bg-rose-100 text-rose-700";
-  return "bg-amber-100 text-amber-700"; // pending
+  return "bg-amber-100 text-amber-700";
 }
 
 function formatDate(value) {
   return value ? new Date(value).toLocaleDateString() : "-";
 }
 
-// Shows leave requests.
-// onApprove / onReject are called with the request id.
 function LeaveRequestTable({ requests, onApprove, onReject }) {
   return (
     <Table headers={["Name", "Type", "From", "To", "Reason", "Status", "Actions"]}>

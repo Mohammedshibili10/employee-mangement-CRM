@@ -7,7 +7,6 @@ import Input from "../../components/common/Input.jsx";
 import { getEmployeesApi, createEmployeeApi, deleteEmployeeApi } from "../../api/employeeApi.js";
 import { getDepartmentsApi } from "../../api/departmentApi.js";
 
-
 const emptyForm = {
   name: "",
   email: "",
@@ -23,7 +22,6 @@ const emptyForm = {
 function Employees() {
   const navigate = useNavigate();
 
-
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -32,13 +30,11 @@ function Employees() {
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
 
- 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
   const [created, setCreated] = useState(null);
-
 
   useEffect(() => {
     fetchEmployees();
@@ -68,17 +64,15 @@ function Employees() {
     }
   }
 
-
   function handleChange(e) {
     setForm({ ...form, [e.target.name]: e.target.value });
   }
 
- 
   async function handleAdd(e) {
     e.preventDefault();
     setSaving(true);
     try {
-   
+
       const data = await createEmployeeApi({
         name: form.name,
         email: form.email,
@@ -90,12 +84,12 @@ function Employees() {
         status: form.status,
         sendWhatsApp: form.sendWhatsApp,
       });
-      await fetchEmployees(); 
+      await fetchEmployees();
       setForm(emptyForm);
       setAddOpen(false);
       setCreated(data.employee);
     } catch (err) {
-    
+
       alert(err.response?.data?.message || "Failed to add employee. Please check the details and try again.");
     } finally {
       setSaving(false);
@@ -111,7 +105,6 @@ function Employees() {
       alert(err.response?.data?.message || "Failed to delete employee.");
     }
   }
-
 
   const filtered = employees.filter((emp) => {
     const matchesSearch = emp.name.toLowerCase().includes(search.toLowerCase());
@@ -166,7 +159,6 @@ function Employees() {
         </>
       )}
 
-   
       <Modal
         isOpen={addOpen}
         onClose={() => setAddOpen(false)}
@@ -200,7 +192,6 @@ function Employees() {
             <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Developer" />
             <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} />
 
-       
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
               <select
@@ -215,7 +206,6 @@ function Employees() {
             </div>
           </div>
 
-       
           <label className="flex items-center gap-2 mb-1 mt-1 text-sm text-slate-700 cursor-pointer">
             <input
               type="checkbox"
@@ -233,7 +223,6 @@ function Employees() {
         </form>
       </Modal>
 
-    
       <Modal
         isOpen={created !== null}
         onClose={() => setCreated(null)}
@@ -248,7 +237,6 @@ function Employees() {
               Employee Created Successfully
             </h3>
 
-  
             <div className="bg-slate-50 rounded-lg p-4 mt-4 text-left text-sm space-y-3">
               <div className="flex justify-between">
                 <span className="text-slate-500">Employee Name</span>

@@ -2,10 +2,6 @@ import { useRef, useState, useEffect } from "react";
 import Button from "../common/Button.jsx";
 import { checkInApi, checkOutApi } from "../../api/attendanceApi.js";
 
-// Camera + GPS capture used inside a popup modal.
-// mode = "checkin" or "checkout". onSuccess() runs after it works.
-// This component is mounted only while the modal is open, so the camera
-// starts when the modal opens and stops when it closes (cleanup).
 function AttendanceCamera({ mode, onSuccess }) {
   const videoRef = useRef(null);
   const streamRef = useRef(null);
@@ -40,7 +36,6 @@ function AttendanceCamera({ mode, onSuccess }) {
     };
   }, []);
 
-  // Get the browser's current GPS position as a promise.
   function getLocation() {
     return new Promise((resolve, reject) => {
       if (!navigator.geolocation) {
@@ -54,7 +49,6 @@ function AttendanceCamera({ mode, onSuccess }) {
     });
   }
 
-  // Take a still photo from the live video as a base64 JPEG.
   function captureSelfie() {
     const video = videoRef.current;
     const canvas = document.createElement("canvas");

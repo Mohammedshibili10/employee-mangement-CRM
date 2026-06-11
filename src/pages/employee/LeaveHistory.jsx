@@ -9,7 +9,7 @@ import { getLeavesApi, applyLeaveApi } from "../../api/leaveApi.js";
 function statusClass(status) {
   if (status === "approved") return "bg-green-100 text-green-700";
   if (status === "rejected") return "bg-rose-100 text-rose-700";
-  return "bg-amber-100 text-amber-700"; // pending
+  return "bg-amber-100 text-amber-700";
 }
 
 function formatDate(value) {
@@ -23,12 +23,10 @@ function LeaveHistory() {
   const [leaves, setLeaves] = useState([]);
   const [loading, setLoading] = useState(true);
 
-  // Apply Leave popup
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
   const [saving, setSaving] = useState(false);
 
-  // Load the logged-in employee's id, then their leaves.
   useEffect(() => {
     async function loadData() {
       try {
@@ -117,10 +115,9 @@ function LeaveHistory() {
         </>
       )}
 
-      {/* Apply Leave popup */}
       <Modal isOpen={open} onClose={() => setOpen(false)} title="Apply Leave">
         <form onSubmit={handleApply}>
-          {/* Leave Type */}
+
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-1">Leave Type</label>
             <select
@@ -139,7 +136,6 @@ function LeaveHistory() {
           <Input label="Start Date" name="from" type="date" value={form.from} onChange={handleChange} />
           <Input label="End Date" name="to" type="date" value={form.to} onChange={handleChange} />
 
-          {/* Reason */}
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-1">Reason</label>
             <textarea

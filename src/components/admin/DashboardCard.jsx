@@ -1,7 +1,4 @@
-// A small statistic card for the dashboard.
-// "color" sets the left border / icon color.
 function DashboardCard({ title, value, color = "blue" }) {
-  // Left-edge accent only (per-side color), so the other borders stay slate.
   const colors = {
     blue: "border-l-green-500",
     green: "border-l-emerald-500",
