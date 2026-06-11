@@ -13,6 +13,7 @@ import EmployeeDetails from "../pages/admin/EmployeeDetails.jsx";
 import Departments from "../pages/admin/Departments.jsx";
 import Attendance from "../pages/admin/Attendance.jsx";
 import LeaveRequests from "../pages/admin/LeaveRequests.jsx";
+import AdminTaskReports from "../pages/admin/TaskReports.jsx";
 import Reports from "../pages/admin/Reports.jsx";
 import AdminSettings from "../pages/admin/Settings.jsx";
 
@@ -20,6 +21,7 @@ import EmployeeDashboard from "../pages/employee/Dashboard.jsx";
 import Profile from "../pages/employee/Profile.jsx";
 import MyAttendance from "../pages/employee/MyAttendance.jsx";
 import LeaveHistory from "../pages/employee/LeaveHistory.jsx";
+import TaskReports from "../pages/employee/TaskReports.jsx";
 import EmployeeSettings from "../pages/employee/Settings.jsx";
 
 function AppRoutes() {
@@ -45,6 +47,7 @@ function AppRoutes() {
           <Route path="departments" element={<Departments />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="leaves" element={<LeaveRequests />} />
+          <Route path="task-reports" element={<AdminTaskReports />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
@@ -55,6 +58,7 @@ function AppRoutes() {
           <Route path="dashboard" element={<EmployeeDashboard />} />
           <Route path="profile" element={<Profile />} />
           <Route path="attendance" element={<MyAttendance />} />
+          <Route path="task-reports" element={<TaskReports />} />
           <Route path="leave-history" element={<LeaveHistory />} />
           <Route path="settings" element={<EmployeeSettings />} />
         </Route>

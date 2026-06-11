@@ -18,12 +18,12 @@ function Settings() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-5">Settings</h2>
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-5">Settings</h2>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
 
-        <form onSubmit={saveProfile} className="bg-white rounded-xl border border-slate-200 p-6">
-          <h3 className="font-semibold text-slate-800 mb-4">Profile Settings</h3>
+        <form onSubmit={saveProfile} className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6">
+          <h3 className="font-bold text-slate-800 mb-4">Profile Settings</h3>
           <Input
             label="Name"
             value={profile.name}
@@ -38,8 +38,8 @@ function Settings() {
           <Button type="submit">Save Changes</Button>
         </form>
 
-        <form onSubmit={savePassword} className="bg-white rounded-xl border border-slate-200 p-6">
-          <h3 className="font-semibold text-slate-800 mb-4">Change Password</h3>
+        <form onSubmit={savePassword} className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6">
+          <h3 className="font-bold text-slate-800 mb-4">Change Password</h3>
           <Input
             label="Current Password"
             type="password"

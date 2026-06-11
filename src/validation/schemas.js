@@ -48,6 +48,13 @@ export const changePasswordSchema = z.object({
   next: z.string().min(6, "New password must be at least 6 characters"),
 });
 
+export const taskReportSchema = z.object({
+  title: z.string().trim().min(3, "Title must be at least 3 characters"),
+  description: z.string().trim().min(5, "Please describe the task (at least 5 characters)"),
+  date: z.string().min(1, "Date is required"),
+  status: z.enum(["completed", "in-progress", "pending"]),
+});
+
 // Validate `data` against `schema`.
 // Returns { valid, data, errors } where errors is { field: "message" }.
 export function validate(schema, data) {

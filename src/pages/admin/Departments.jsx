@@ -10,6 +10,7 @@ import {
   deleteDepartmentApi,
 } from "../../api/departmentApi.js";
 import { getEmployeesApi } from "../../api/employeeApi.js";
+import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { departmentSchema, validate } from "../../validation/schemas.js";
 
 function Departments() {
@@ -109,13 +110,11 @@ function Departments() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-slate-800">Departments</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Departments</h2>
         <Button color="green" onClick={openAdd}>+ Add Department</Button>
       </div>
 
-      {loading && (
-        <p className="text-center text-slate-500 mt-6">Loading departments...</p>
-      )}
+      {loading && <SkeletonTable rows={5} cols={4} />}
       {error && <p className="text-center text-rose-500 mt-6">{error}</p>}
 
       {!loading && !error && (
@@ -147,7 +146,7 @@ function Departments() {
             error={formErrors.head}
           />
           <div className="flex gap-3 mt-2">
-            <Button type="submit" color="green">{saving ? "Saving..." : "Save"}</Button>
+            <Button type="submit" color="green" loading={saving}>{saving ? "Saving..." : "Save"}</Button>
             <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>

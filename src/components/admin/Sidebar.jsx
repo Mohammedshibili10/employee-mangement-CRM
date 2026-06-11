@@ -2,15 +2,17 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logout as logoutAction } from "../../redux/slices/authSlice.js";
 import Logo from "../common/Logo.jsx";
+import Icon from "../common/Icon.jsx";
 
 const menu = [
-  { name: "Dashboard", path: "/admin/dashboard" },
-  { name: "Employees", path: "/admin/employees" },
-  { name: "Departments", path: "/admin/departments" },
-  { name: "Attendance", path: "/admin/attendance" },
-  { name: "Leave Requests", path: "/admin/leaves" },
-  { name: "Reports", path: "/admin/reports" },
-  { name: "Settings", path: "/admin/settings" },
+  { name: "Dashboard", path: "/admin/dashboard", icon: "dashboard" },
+  { name: "Employees", path: "/admin/employees", icon: "employees" },
+  { name: "Departments", path: "/admin/departments", icon: "departments" },
+  { name: "Attendance", path: "/admin/attendance", icon: "attendance" },
+  { name: "Leave Requests", path: "/admin/leaves", icon: "leaves" },
+  { name: "Task Reports", path: "/admin/task-reports", icon: "tasks" },
+  { name: "Reports", path: "/admin/reports", icon: "reports" },
+  { name: "Settings", path: "/admin/settings", icon: "settings" },
 ];
 
 function Sidebar({ open = false, onClose = () => {} }) {
@@ -25,11 +27,11 @@ function Sidebar({ open = false, onClose = () => {} }) {
 
   const content = (
     <div className="h-full flex flex-col">
-      <div className="px-5 py-5 border-b border-slate-200">
+      <div className="px-5 py-5 border-b border-slate-100">
         <Logo subtitle="Admin Panel" />
       </div>
 
-      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto">
+      <nav className="flex-1 px-3 py-5 space-y-1 overflow-y-auto scrollbar-slim">
         <p className="px-3 mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
           Menu
         </p>
@@ -39,22 +41,33 @@ function Sidebar({ open = false, onClose = () => {} }) {
             to={item.path}
             onClick={onClose}
             className={({ isActive }) =>
-              `block px-3 py-2 rounded-lg text-sm font-medium transition-colors ${
+              `group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ${
                 isActive
-                  ? "bg-green-50 text-green-700"
-                  : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
+                  ? "bg-brand-gradient text-white shadow-glow-sm"
+                  : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900"
               }`
             }
           >
-            {item.name}
+            {({ isActive }) => (
+              <>
+                <Icon
+                  name={item.icon}
+                  className={`h-5 w-5 shrink-0 transition-colors ${
+                    isActive ? "text-white" : "text-slate-400 group-hover:text-brand-600"
+                  }`}
+                />
+                {item.name}
+              </>
+            )}
           </NavLink>
         ))}
       </nav>
 
       <button
         onClick={handleLogout}
-        className="m-3 px-4 py-2 border border-slate-200 text-slate-600 hover:bg-slate-50 rounded-lg text-sm font-medium transition-colors"
+        className="m-3 flex items-center justify-center gap-2 px-4 py-2.5 border border-slate-200 text-slate-600 hover:bg-rose-50 hover:text-rose-600 hover:border-rose-200 rounded-xl text-sm font-semibold transition-all duration-200"
       >
+        <Icon name="logout" className="h-4 w-4" />
         Logout
       </button>
     </div>
@@ -62,15 +75,14 @@ function Sidebar({ open = false, onClose = () => {} }) {
 
   return (
     <>
-
-      <aside className="hidden lg:block w-64 shrink-0 bg-white border-r border-slate-200">
+      <aside className="hidden lg:block w-64 shrink-0 bg-white/80 backdrop-blur-sm border-r border-slate-200/70">
         {content}
       </aside>
 
       {open && (
         <div className="lg:hidden fixed inset-0 z-40">
-          <div className="absolute inset-0 bg-slate-900/40" onClick={onClose} />
-          <div className="absolute left-0 top-0 h-full w-64 bg-white border-r border-slate-200 shadow-xl">
+          <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-sm animate-fade-in" onClick={onClose} />
+          <div className="absolute left-0 top-0 h-full w-64 bg-white border-r border-slate-200 shadow-premium animate-slide-in-left">
             {content}
           </div>
         </div>

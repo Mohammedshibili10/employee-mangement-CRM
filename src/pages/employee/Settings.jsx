@@ -61,22 +61,22 @@ function Settings() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-5">Settings</h2>
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-5">Settings</h2>
 
-      <div className="bg-white rounded-xl border border-slate-200 p-6 max-w-lg">
-        <h3 className="font-semibold text-slate-800 mb-4">Account</h3>
+      <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6 max-w-lg">
+        <h3 className="font-bold text-slate-800 mb-4">Account</h3>
 
-        <div className="flex justify-between py-2 border-b border-slate-100">
+        <div className="flex justify-between py-2.5 border-b border-slate-100">
           <span className="text-slate-500">Name</span>
-          <span className="text-slate-800 font-medium">{me?.name || "-"}</span>
+          <span className="text-slate-800 font-semibold">{me?.name || "-"}</span>
         </div>
-        <div className="flex justify-between py-2 border-b border-slate-100">
+        <div className="flex justify-between py-2.5 border-b border-slate-100">
           <span className="text-slate-500">Email</span>
-          <span className="text-slate-800 font-medium">{me?.email || "-"}</span>
+          <span className="text-slate-800 font-semibold">{me?.email || "-"}</span>
         </div>
-        <div className="flex justify-between py-2">
+        <div className="flex justify-between py-2.5">
           <span className="text-slate-500">Role</span>
-          <span className="text-slate-800 font-medium capitalize">{me?.role || "-"}</span>
+          <span className="text-slate-800 font-semibold capitalize">{me?.role || "-"}</span>
         </div>
 
         <div className="mt-5">
@@ -102,7 +102,7 @@ function Settings() {
             error={formErrors.next}
           />
           <div className="flex gap-3 mt-2">
-            <Button type="submit" color="green">{saving ? "Updating..." : "Update Password"}</Button>
+            <Button type="submit" color="green" loading={saving}>{saving ? "Updating..." : "Update Password"}</Button>
             <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>

@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Button from "../../components/common/Button.jsx";
 import Table from "../../components/common/Table.jsx";
+import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import {
   getEmployeeReportApi,
   getAttendanceReportApi,
@@ -92,7 +93,7 @@ function Reports() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-5">Reports</h2>
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-5">Reports</h2>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
         <ReportCard
@@ -118,7 +119,7 @@ function Reports() {
       {active && (
         <div className="mt-6">
           <div className="flex items-center justify-between mb-3">
-            <h3 className="text-lg font-semibold text-slate-800">{config.title}</h3>
+            <h3 className="text-lg font-bold text-slate-800">{config.title}</h3>
             {!loading && rows.length > 0 && (
               <Button color="green" onClick={() => downloadCsv(`${active}-report.csv`, config.columns, rows)}>
                 Export CSV
@@ -126,7 +127,7 @@ function Reports() {
             )}
           </div>
 
-          {loading && <p className="text-center text-slate-500 mt-6">Loading report...</p>}
+          {loading && <SkeletonTable rows={6} cols={config.columns.length} />}
 
           {!loading && (
             <>
@@ -153,12 +154,12 @@ function Reports() {
 function ReportCard({ title, desc, active, onView }) {
   return (
     <div
-      className={`bg-white rounded-xl border p-6 flex flex-col justify-between ${
-        active ? "border-green-400" : "border-slate-200"
+      className={`bg-white rounded-2xl border p-6 flex flex-col justify-between shadow-soft transition-all duration-300 hover:shadow-card hover:-translate-y-0.5 ${
+        active ? "border-brand-400 ring-2 ring-brand-500/15" : "border-slate-200/70"
       }`}
     >
       <div>
-        <h3 className="font-semibold text-slate-800">{title}</h3>
+        <h3 className="font-bold text-slate-800">{title}</h3>
         <p className="text-sm text-slate-500 mt-1">{desc}</p>
       </div>
       <div className="flex gap-2 mt-4">

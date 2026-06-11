@@ -84,14 +84,14 @@ function AttendanceCamera({ mode, onSuccess }) {
         autoPlay
         playsInline
         muted
-        className="w-full rounded-md bg-slate-100 mb-3 aspect-video object-cover"
+        className="w-full rounded-xl bg-slate-900 mb-3 aspect-video object-cover ring-1 ring-slate-200"
       />
 
-      <Button color="green" onClick={handleSubmit}>
+      <Button color="green" onClick={handleSubmit} loading={busy} className="w-full">
         {busy ? "Saving..." : isCheckIn ? "Capture & Check-in" : "Capture & Check-out"}
       </Button>
 
-      {message && <p className="text-sm mt-3 text-green-600">{message}</p>}
+      {message && <p className="text-sm mt-3 text-brand-600">{message}</p>}
       {error && <p className="text-sm mt-3 text-rose-600">{error}</p>}
 
       <p className="text-xs text-slate-400 mt-3">

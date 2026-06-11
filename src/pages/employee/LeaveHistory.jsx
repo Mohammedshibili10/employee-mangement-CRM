@@ -3,12 +3,13 @@ import Table from "../../components/common/Table.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Input from "../../components/common/Input.jsx";
 import Button from "../../components/common/Button.jsx";
+import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getMeApi } from "../../api/authApi.js";
 import { getLeavesApi, applyLeaveApi } from "../../api/leaveApi.js";
 import { leaveSchema, validate } from "../../validation/schemas.js";
 
 function statusClass(status) {
-  if (status === "approved") return "bg-green-100 text-green-700";
+  if (status === "approved") return "bg-brand-100 text-brand-700";
   if (status === "rejected") return "bg-rose-100 text-rose-700";
   return "bg-amber-100 text-amber-700";
 }
@@ -103,18 +104,18 @@ function LeaveHistory() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-slate-800">Leave History</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Leave History</h2>
         <Button color="green" onClick={openModal}>+ Apply Leave</Button>
       </div>
 
-      {loading && <p className="text-center text-slate-500 mt-6">Loading leave history...</p>}
+      {loading && <SkeletonTable rows={5} cols={4} />}
 
       {!loading && (
         <>
           <Table headers={["Leave Type", "Duration", "Reason", "Status"]}>
             {leaves.map((leave) => (
-              <tr key={leave._id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 text-slate-800 font-medium">{leave.type}</td>
+              <tr key={leave._id} className="hover:bg-brand-50/40 transition-colors">
+                <td className="px-4 py-3 text-slate-800 font-semibold capitalize">{leave.type}</td>
                 <td className="px-4 py-3 text-slate-600">
                   {formatDate(leave.from)} → {formatDate(leave.to)}
                 </td>
@@ -122,7 +123,8 @@ function LeaveHistory() {
                   <span className="block max-w-[16rem] truncate" title={leave.reason}>{leave.reason}</span>
                 </td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass(leave.status)}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusClass(leave.status)}`}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                     {leave.status}
                   </span>
                 </td>
@@ -145,7 +147,7 @@ function LeaveHistory() {
               name="type"
               value={form.type}
               onChange={handleChange}
-              className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+              className="w-full rounded-xl border border-slate-200 bg-slate-50/60 px-3.5 py-2.5 text-sm focus:outline-none focus:bg-white focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
             >
               <option value="sick">Sick</option>
               <option value="casual">Casual</option>
@@ -165,15 +167,17 @@ function LeaveHistory() {
               onChange={handleChange}
               rows="3"
               placeholder="Write your reason..."
-              className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
-                formErrors.reason ? "border-rose-400 focus:ring-rose-300" : "border-slate-300 focus:ring-green-500"
+              className={`w-full rounded-xl border bg-slate-50/60 px-3.5 py-2.5 text-sm focus:outline-none focus:bg-white focus:ring-4 transition-all ${
+                formErrors.reason
+                  ? "border-rose-300 focus:border-rose-400 focus:ring-rose-500/15"
+                  : "border-slate-200 focus:border-brand-400 focus:ring-brand-500/15"
               }`}
             />
             {formErrors.reason && <p className="text-xs text-rose-600 mt-1">{formErrors.reason}</p>}
           </div>
 
           <div className="flex gap-3 mt-2">
-            <Button type="submit" color="green">{saving ? "Submitting..." : "Submit Request"}</Button>
+            <Button type="submit" color="green" loading={saving}>{saving ? "Submitting..." : "Submit Request"}</Button>
             <Button color="gray" onClick={closeModal}>Cancel</Button>
           </div>
         </form>

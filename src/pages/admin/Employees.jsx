@@ -4,6 +4,7 @@ import EmployeeTable from "../../components/admin/EmployeeTable.jsx";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Input from "../../components/common/Input.jsx";
+import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getEmployeesApi, createEmployeeApi, deleteEmployeeApi } from "../../api/employeeApi.js";
 import { getDepartmentsApi } from "../../api/departmentApi.js";
 import { employeeSchema, validate } from "../../validation/schemas.js";
@@ -136,7 +137,7 @@ function Employees() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-slate-800">Employees</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Employees</h2>
         <Button color="green" onClick={openAdd}>
           + Add Employee
         </Button>
@@ -148,12 +149,12 @@ function Employees() {
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           placeholder="Search employee..."
-          className="flex-1 border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="flex-1 rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
         />
         <select
           value={filter}
           onChange={(e) => setFilter(e.target.value)}
-          className="border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
         >
           <option value="All">All Status</option>
           <option value="Active">Active</option>
@@ -161,9 +162,7 @@ function Employees() {
         </select>
       </div>
 
-      {loading && (
-        <p className="text-center text-slate-500 mt-6">Loading employees...</p>
-      )}
+      {loading && <SkeletonTable rows={6} cols={7} />}
       {error && <p className="text-center text-rose-500 mt-6">{error}</p>}
 
       {!loading && !error && (
@@ -241,7 +240,7 @@ function Employees() {
           </label>
 
           <div className="flex gap-3 mt-4">
-            <Button type="submit" color="green">{saving ? "Saving..." : "Create Employee"}</Button>
+            <Button type="submit" color="green" loading={saving}>{saving ? "Saving..." : "Create Employee"}</Button>
             <Button color="gray" onClick={closeAdd}>Cancel</Button>
           </div>
         </form>

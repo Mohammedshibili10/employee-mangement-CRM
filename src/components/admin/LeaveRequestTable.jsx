@@ -2,7 +2,7 @@ import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
 
 function statusClass(status) {
-  if (status === "approved") return "bg-green-100 text-green-700";
+  if (status === "approved") return "bg-brand-100 text-brand-700";
   if (status === "rejected") return "bg-rose-100 text-rose-700";
   return "bg-amber-100 text-amber-700";
 }
@@ -15,8 +15,8 @@ function LeaveRequestTable({ requests, onApprove, onReject }) {
   return (
     <Table headers={["Name", "Type", "From", "To", "Reason", "Status", "Actions"]}>
       {requests.map((req) => (
-        <tr key={req._id} className="hover:bg-slate-50">
-          <td className="px-4 py-3 font-medium text-slate-800">{req.employee?.name || "-"}</td>
+        <tr key={req._id} className="hover:bg-brand-50/40 transition-colors">
+          <td className="px-4 py-3 font-semibold text-slate-800">{req.employee?.name || "-"}</td>
           <td className="px-4 py-3 text-slate-600">{req.type}</td>
           <td className="px-4 py-3 text-slate-600">{formatDate(req.from)}</td>
           <td className="px-4 py-3 text-slate-600">{formatDate(req.to)}</td>
@@ -24,7 +24,8 @@ function LeaveRequestTable({ requests, onApprove, onReject }) {
             <span className="block max-w-[16rem] truncate" title={req.reason}>{req.reason}</span>
           </td>
           <td className="px-4 py-3">
-            <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass(req.status)}`}>
+            <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusClass(req.status)}`}>
+              <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
               {req.status}
             </span>
           </td>

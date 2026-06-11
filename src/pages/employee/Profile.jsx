@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useDispatch } from "react-redux";
 import ProfileCard from "../../components/employee/ProfileCard.jsx";
+import Skeleton from "../../components/common/Skeleton.jsx";
 import { getMeApi } from "../../api/authApi.js";
 import { updateMyPhotoApi, deleteMyPhotoApi } from "../../api/employeeApi.js";
 import { setProfilePhoto } from "../../redux/slices/authSlice.js";
@@ -79,7 +80,27 @@ function Profile() {
   }
 
   if (loading) {
-    return <p className="text-slate-500">Loading profile...</p>;
+    return (
+      <div>
+        <Skeleton className="h-7 w-40 mb-5" />
+        <div className="max-w-md">
+          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card overflow-hidden">
+            <Skeleton className="h-24 w-full rounded-none" />
+            <div className="px-6 pb-6">
+              <Skeleton className="-mt-12 h-24 w-24 rounded-2xl" />
+              <Skeleton className="h-5 w-44 mt-3" />
+              <Skeleton className="h-3 w-28 mt-2" />
+              <div className="mt-5 space-y-3">
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+                <Skeleton className="h-10 w-full" />
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!me) {
@@ -89,6 +110,8 @@ function Profile() {
   const employee = {
     name: me.name,
     photo: me.profilePhoto,
+    empId: me.empId,
+    status: me.status,
     designation: me.designation || "-",
     email: me.email,
     phone: me.phone || "-",
@@ -99,7 +122,7 @@ function Profile() {
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
-        <h2 className="text-2xl font-bold text-slate-800">My Profile</h2>
+        <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">My Profile</h2>
       </div>
 
       <div className="max-w-md space-y-3">
@@ -117,21 +140,20 @@ function Profile() {
           className="hidden"
         />
 
-        <p className="text-xs text-slate-400 px-1">
-          Tip: click your photo to upload or change it.
+        <div className="flex items-center justify-between gap-2 px-1">
+          <p className="text-xs text-slate-400">
+            Tip: click your photo to upload or change it.
+          </p>
           {me.profilePhoto && (
-            <>
-              {" "}
-              <button
-                onClick={handleRemove}
-                disabled={busy}
-                className="text-rose-600 hover:underline disabled:opacity-60"
-              >
-                Remove photo
-              </button>
-            </>
+            <button
+              onClick={handleRemove}
+              disabled={busy}
+              className="text-xs font-medium text-rose-600 hover:underline disabled:opacity-60 whitespace-nowrap"
+            >
+              Remove photo
+            </button>
           )}
-        </p>
+        </div>
       </div>
     </div>
   );

@@ -4,14 +4,15 @@ import AttendanceCamera from "../../components/employee/AttendanceCamera.jsx";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Table from "../../components/common/Table.jsx";
+import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getMeApi } from "../../api/authApi.js";
 import { getAttendanceApi } from "../../api/attendanceApi.js";
 
 function statusClass(status) {
-  if (status === "present") return "bg-green-100 text-green-700";
+  if (status === "present") return "bg-brand-100 text-brand-700";
   if (status === "late") return "bg-amber-100 text-amber-700";
   if (status === "absent") return "bg-rose-100 text-rose-700";
-  return "bg-slate-100 text-slate-600";
+  return "bg-slate-100 text-slate-500";
 }
 
 function formatDate(value) {
@@ -58,17 +59,20 @@ function MyAttendance() {
     setRecords(res.attendance || []);
   }
 
-  const presentDays = records.filter((r) => r.status === "present").length;
+  // A day counts as "present" if the employee actually showed up — that
+  // includes on-time, late, and half-day check-ins (anything but absent/leave).
+  const attendedStatuses = ["present", "late", "half-day"];
+  const presentDays = records.filter((r) => attendedStatuses.includes(r.status)).length;
   const absentDays = records.filter((r) => r.status === "absent").length;
   const percent = records.length ? Math.round((presentDays / records.length) * 100) : 0;
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-slate-800 mb-5">My Attendance</h2>
+      <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-5">My Attendance</h2>
 
       <div className="flex gap-3 mb-6">
         <Button color="green" onClick={() => setMode("checkin")}>Check-in</Button>
-        <Button onClick={() => setMode("checkout")}>Check-out</Button>
+        <Button color="gray" onClick={() => setMode("checkout")}>Check-out</Button>
       </div>
 
       <Modal
@@ -93,20 +97,21 @@ function MyAttendance() {
         <AttendanceCard title="Attendance %" value={`${percent}%`} note="So far" />
       </div>
 
-      <h3 className="font-semibold text-slate-800 mb-3">Attendance History</h3>
+      <h3 className="font-bold text-slate-800 mb-3">Attendance History</h3>
 
-      {loading && <p className="text-center text-slate-500 mt-6">Loading attendance...</p>}
+      {loading && <SkeletonTable rows={5} cols={5} />}
 
       {!loading && (
         <>
           <Table headers={["Date", "Check In", "Check Out", "Status", "Overtime"]}>
             {records.map((row) => (
-              <tr key={row._id} className="hover:bg-slate-50">
-                <td className="px-4 py-3 text-slate-800 font-medium">{formatDate(row.date)}</td>
+              <tr key={row._id} className="hover:bg-brand-50/40 transition-colors">
+                <td className="px-4 py-3 text-slate-800 font-semibold">{formatDate(row.date)}</td>
                 <td className="px-4 py-3 text-slate-600">{formatTime(row.checkIn)}</td>
                 <td className="px-4 py-3 text-slate-600">{formatTime(row.checkOut)}</td>
                 <td className="px-4 py-3">
-                  <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass(row.status)}`}>
+                  <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold capitalize ${statusClass(row.status)}`}>
+                    <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                     {row.status}
                   </span>
                 </td>
