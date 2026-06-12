@@ -5,6 +5,7 @@ import AdminLayout from "../layouts/AdminLayout.jsx";
 import EmployeeLayout from "../layouts/EmployeeLayout.jsx";
 
 import Login from "../pages/auth/Login.jsx";
+import ForgotPassword from "../pages/auth/ForgotPassword.jsx";
 import ProtectedRoute from "./ProtectedRoute.jsx";
 
 import AdminDashboard from "../pages/admin/Dashboard.jsx";
@@ -37,6 +38,11 @@ function AppRoutes() {
       <Route
         path="/login"
         element={token ? <Navigate to={dashboardPath} replace /> : <Login />}
+      />
+
+      <Route
+        path="/forgot-password"
+        element={token ? <Navigate to={dashboardPath} replace /> : <ForgotPassword />}
       />
 
       <Route element={<ProtectedRoute role="admin" />}>
