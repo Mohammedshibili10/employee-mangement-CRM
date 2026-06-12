@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Table from "../../components/common/Table.jsx";
 import { SkeletonTable } from "../../components/common/Skeleton.jsx";
-import { getTaskReportsApi } from "../../api/taskReportApi.js";
+import { getTaskReportsApi, verifyTaskReportApi } from "../../api/taskReportApi.js";
 
 function statusClass(status) {
   if (status === "completed") return "bg-brand-100 text-brand-700";
@@ -24,6 +24,7 @@ function TaskReports() {
   const [error, setError] = useState(null);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState("All");
+  const [verifyingId, setVerifyingId] = useState(null);
 
   useEffect(() => {
     async function load() {
@@ -41,6 +42,20 @@ function TaskReports() {
     }
     load();
   }, []);
+
+  async function handleVerify(id) {
+    try {
+      setVerifyingId(id);
+      const data = await verifyTaskReportApi(id);
+      // Update just this row with the verified report returned by the server.
+      setReports((prev) => prev.map((r) => (r._id === id ? data.taskReport : r)));
+    } catch (err) {
+      console.error("Failed to verify task report:", err);
+      alert(err.response?.data?.message || "Failed to verify task report.");
+    } finally {
+      setVerifyingId(null);
+    }
+  }
 
   const filtered = reports.filter((r) => {
     const name = r.employee?.name?.toLowerCase() || "";
@@ -81,7 +96,7 @@ function TaskReports() {
 
       {!loading && !error && (
         <>
-          <Table headers={["Employee", "Department", "Title", "Date", "Attachment", "Status"]}>
+          <Table headers={["Employee", "Department", "Title", "Date", "Attachment", "Status", "Verification"]}>
             {filtered.map((r) => (
               <tr key={r._id} className="hover:bg-brand-50/40 transition-colors">
                 <td className="px-4 py-3 font-semibold text-slate-800">{r.employee?.name || "-"}</td>
@@ -111,6 +126,32 @@ function TaskReports() {
                     <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                     {statusLabel(r.status)}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  {r.verified ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700">
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Verified
+                    </span>
+                  ) : (
+                    <button
+                      onClick={() => handleVerify(r._id)}
+                      disabled={verifyingId === r._id}
+                      className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold bg-brand-gradient text-white shadow-glow-sm hover:brightness-105 active:scale-95 transition-all disabled:opacity-60"
+                    >
+                      {verifyingId === r._id ? (
+                        <span className="h-3.5 w-3.5 rounded-full border-2 border-white border-t-transparent animate-spin" />
+                      ) : (
+                        <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 12l2 2 4-4" />
+                          <circle cx="12" cy="12" r="9" />
+                        </svg>
+                      )}
+                      {verifyingId === r._id ? "Verifying..." : "Verify"}
+                    </button>
+                  )}
                 </td>
               </tr>
             ))}

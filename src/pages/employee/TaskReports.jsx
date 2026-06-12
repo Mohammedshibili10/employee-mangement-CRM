@@ -145,11 +145,11 @@ function TaskReports() {
         </div>
       )}
 
-      {loading && <SkeletonTable rows={5} cols={5} />}
+      {loading && <SkeletonTable rows={5} cols={6} />}
 
       {!loading && (
         <>
-          <Table headers={["Date", "Title", "Description", "Attachment", "Status"]}>
+          <Table headers={["Date", "Title", "Description", "Attachment", "Status", "Verification"]}>
             {reports.map((r) => (
               <tr key={r._id} className="hover:bg-brand-50/40 transition-colors">
                 <td className="px-4 py-3 text-slate-600">{formatDate(r.date)}</td>
@@ -178,6 +178,24 @@ function TaskReports() {
                     <span className="h-1.5 w-1.5 rounded-full bg-current opacity-70" />
                     {statusLabel(r.status)}
                   </span>
+                </td>
+                <td className="px-4 py-3">
+                  {r.verified ? (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-brand-100 text-brand-700" title="Verified by admin">
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      Verified
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-slate-100 text-slate-500" title="Awaiting admin verification">
+                      <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="9" />
+                        <path d="M12 7v5l3 2" />
+                      </svg>
+                      Not Verified
+                    </span>
+                  )}
                 </td>
               </tr>
             ))}

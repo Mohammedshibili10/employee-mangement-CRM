@@ -20,3 +20,12 @@ export const createTaskReportApi = async (reportData) => {
     });
     return res.data;
 };
+
+// Admin verifies a task report (marks it as verified).
+export const verifyTaskReportApi = async (id) => {
+    const token = localStorage.getItem('token');
+    const res = await axios.put(`/api/task-reports/${id}/verify`, {}, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+};
