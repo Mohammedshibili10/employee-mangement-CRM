@@ -1,6 +1,6 @@
 import { useState } from "react";
 
-function Input({ label, type = "text", value, onChange, placeholder, name, error }) {
+function Input({ label, type = "text", value, onChange, placeholder, name, error, disabled = false }) {
   const [show, setShow] = useState(false);
 
   // Password fields get a show/hide (eye) toggle.
@@ -22,7 +22,8 @@ function Input({ label, type = "text", value, onChange, placeholder, name, error
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          className={`w-full rounded-xl border bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-4 ${
+          disabled={disabled}
+          className={`w-full rounded-xl border bg-slate-50/60 px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 transition-all duration-200 focus:outline-none focus:bg-white focus:ring-4 disabled:bg-slate-100 disabled:text-slate-500 disabled:cursor-not-allowed ${
             isPassword ? "pr-11" : ""
           } ${
             error

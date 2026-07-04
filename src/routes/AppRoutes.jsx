@@ -15,6 +15,7 @@ import Departments from "../pages/admin/Departments.jsx";
 import Attendance from "../pages/admin/Attendance.jsx";
 import SalaryReport from "../pages/admin/SalaryReport.jsx";
 import Lop from "../pages/admin/Lop.jsx";
+import Additions from "../pages/admin/Additions.jsx";
 import Reports from "../pages/admin/Reports.jsx";
 import AdminSettings from "../pages/admin/Settings.jsx";
 
@@ -51,7 +52,10 @@ function AppRoutes() {
           <Route path="departments" element={<Departments />} />
           <Route path="attendance" element={<Attendance />} />
           <Route path="salary" element={<SalaryReport />} />
-          <Route path="lop" element={<Lop />} />
+          <Route path="salary-adjustments" element={<Navigate to="/admin/salary-adjustments/deductions" replace />} />
+          <Route path="salary-adjustments/deductions" element={<Lop />} />
+          <Route path="salary-adjustments/additions" element={<Additions />} />
+          <Route path="lop" element={<Navigate to="/admin/salary-adjustments/deductions" replace />} />
           <Route path="reports" element={<Reports />} />
           <Route path="settings" element={<AdminSettings />} />
         </Route>
