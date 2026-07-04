@@ -5,7 +5,6 @@ import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import {
   getEmployeeReportApi,
   getAttendanceReportApi,
-  getLeaveReportApi,
 } from "../../api/reportApi.js";
 
 function formatDate(v) {
@@ -53,17 +52,6 @@ const REPORTS = {
       { label: "Status", value: (r) => r.status },
     ],
   },
-  leaves: {
-    title: "Leave Report",
-    columns: [
-      { label: "Employee", value: (r) => r.employee?.name || "-" },
-      { label: "Type", value: (r) => r.type },
-      { label: "From", value: (r) => formatDate(r.from) },
-      { label: "To", value: (r) => formatDate(r.to) },
-      { label: "Reason", value: (r) => r.reason },
-      { label: "Status", value: (r) => r.status },
-    ],
-  },
 };
 
 function Reports() {
@@ -78,8 +66,7 @@ function Reports() {
       setRows([]);
       let data;
       if (type === "employees") data = (await getEmployeeReportApi()).employees;
-      else if (type === "attendance") data = (await getAttendanceReportApi()).attendanceRecords;
-      else data = (await getLeaveReportApi()).leaveRecords;
+      else data = (await getAttendanceReportApi()).attendanceRecords;
       setRows(data || []);
     } catch (err) {
       console.error("Failed to load report:", err);
@@ -95,7 +82,7 @@ function Reports() {
     <div>
       <h2 className="text-2xl font-extrabold tracking-tight text-slate-800 mb-5">Reports</h2>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
         <ReportCard
           title="Employee Report"
           desc="Full list of all employees and their details."
@@ -107,12 +94,6 @@ function Reports() {
           desc="All check-in / check-out records."
           active={active === "attendance"}
           onView={() => viewReport("attendance")}
-        />
-        <ReportCard
-          title="Leave Report"
-          desc="Leave requests and their status."
-          active={active === "leaves"}
-          onView={() => viewReport("leaves")}
         />
       </div>
 

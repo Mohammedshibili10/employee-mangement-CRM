@@ -4,13 +4,11 @@ import AttendanceTable from "../../components/admin/AttendanceTable.jsx";
 import { SkeletonStatCards, SkeletonCard, SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getEmployeesApi } from "../../api/employeeApi.js";
 import { getDepartmentsApi } from "../../api/departmentApi.js";
-import { getLeavesApi } from "../../api/leaveApi.js";
 import { getAttendanceSummaryApi, getAttendanceApi } from "../../api/attendanceApi.js";
 
 function Dashboard() {
   const [employees, setEmployees] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [leaves, setLeaves] = useState([]);
   const [attendance, setAttendance] = useState({ present: 0, late: 0, absent: 0 });
   const [attendanceRecords, setAttendanceRecords] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,16 +16,14 @@ function Dashboard() {
   useEffect(() => {
     async function loadData() {
       try {
-        const [empRes, deptRes, leaveRes, attRes, attListRes] = await Promise.all([
+        const [empRes, deptRes, attRes, attListRes] = await Promise.all([
           getEmployeesApi(),
           getDepartmentsApi(),
-          getLeavesApi(),
           getAttendanceSummaryApi(),
           getAttendanceApi(),
         ]);
         setEmployees(empRes.employees || []);
         setDepartments(deptRes.departments || []);
-        setLeaves(leaveRes.leaves || []);
         setAttendance(attRes.summary || { present: 0, late: 0, absent: 0 });
         setAttendanceRecords(attListRes.attendance || []);
       } catch (err) {
@@ -42,9 +38,6 @@ function Dashboard() {
   const totalEmployees = employees.length;
   const activeEmployees = employees.filter((e) => e.status === "active").length;
   const totalDepartments = departments.length;
-  const pendingLeaves = leaves.filter((l) => l.status === "pending").length;
-  const approvedLeaves = leaves.filter((l) => l.status === "approved").length;
-  const rejectedLeaves = leaves.filter((l) => l.status === "rejected").length;
 
   const distribution = departments.map((d) => ({
     name: d.name,
@@ -63,9 +56,8 @@ function Dashboard() {
     return (
       <div>
         <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mb-5">Dashboard</h2>
-        <SkeletonStatCards count={4} />
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-5 mt-6">
-          <SkeletonCard />
+        <SkeletonStatCards count={3} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mt-6">
           <SkeletonCard />
           <SkeletonCard />
         </div>
@@ -80,14 +72,13 @@ function Dashboard() {
     <div>
       <h2 className="text-2xl font-extrabold text-slate-800 tracking-tight mb-5">Dashboard</h2>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5 mb-6">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-5 mb-6">
         <DashboardCard title="Total Employees" value={totalEmployees} color="blue" />
         <DashboardCard title="Active Employees" value={activeEmployees} color="green" />
         <DashboardCard title="Total Departments" value={totalDepartments} color="purple" />
-        <DashboardCard title="Pending Leaves" value={pendingLeaves} color="orange" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-5">
           <h3 className="font-bold text-slate-800 mb-3">Employee Distribution</h3>
           {distribution.length === 0 && (
@@ -114,22 +105,6 @@ function Dashboard() {
           <div className="flex justify-between text-sm py-1.5 text-slate-600">
             <span>Absent</span>
             <span className="font-semibold text-rose-600">{attendance.absent}</span>
-          </div>
-        </div>
-
-        <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-5">
-          <h3 className="font-bold text-slate-800 mb-3">Leave Overview</h3>
-          <div className="flex justify-between text-sm py-1.5 text-slate-600">
-            <span>Pending</span>
-            <span className="font-semibold text-amber-600">{pendingLeaves}</span>
-          </div>
-          <div className="flex justify-between text-sm py-1.5 text-slate-600">
-            <span>Approved</span>
-            <span className="font-semibold text-brand-600">{approvedLeaves}</span>
-          </div>
-          <div className="flex justify-between text-sm py-1.5 text-slate-600">
-            <span>Rejected</span>
-            <span className="font-semibold text-rose-600">{rejectedLeaves}</span>
           </div>
         </div>
       </div>

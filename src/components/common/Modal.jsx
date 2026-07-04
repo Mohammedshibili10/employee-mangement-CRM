@@ -6,6 +6,7 @@ function Modal({ isOpen, onClose, title, children, size = "md" }) {
   const widths = {
     md: "max-w-md",
     lg: "max-w-lg",
+    xl: "max-w-3xl",
   };
 
   // Render into document.body via a portal so the fixed overlay is always

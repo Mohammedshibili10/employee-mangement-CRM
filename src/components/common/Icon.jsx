@@ -61,6 +61,19 @@ const paths = {
       <path d="M8.5 17.5h7" />
     </>
   ),
+  salary: (
+    <>
+      <rect x="3" y="6" width="18" height="12" rx="2" />
+      <circle cx="12" cy="12" r="2.5" />
+      <path d="M6 9v6M18 9v6" />
+    </>
+  ),
+  lop: (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <path d="M8 12h8" />
+    </>
+  ),
   logout: (
     <>
       <path d="M15 4h3a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2h-3" />

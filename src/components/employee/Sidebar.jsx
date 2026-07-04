@@ -7,8 +7,6 @@ import Icon from "../common/Icon.jsx";
 const menu = [
   { name: "Dashboard", path: "/employee/dashboard", icon: "dashboard" },
   { name: "My Attendance", path: "/employee/attendance", icon: "attendance" },
-  { name: "Task Reports", path: "/employee/task-reports", icon: "tasks" },
-  { name: "Leave History", path: "/employee/leave-history", icon: "leaves" },
   { name: "My Profile", path: "/employee/profile", icon: "profile" },
   { name: "Settings", path: "/employee/settings", icon: "settings" },
 ];

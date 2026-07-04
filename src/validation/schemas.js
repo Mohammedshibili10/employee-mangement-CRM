@@ -14,7 +14,6 @@ export const loginSchema = z.object({
 export const employeeSchema = z.object({
   name: z.string().trim().min(2, "Name must be at least 2 characters"),
   email: emailField,
-  password: z.string().min(6, "Password must be at least 6 characters"),
   phone: z
     .string()
     .trim()
@@ -31,28 +30,9 @@ export const departmentSchema = z.object({
   head: z.string().trim().min(1, "Department head is required"),
 });
 
-export const leaveSchema = z
-  .object({
-    type: z.enum(["sick", "casual", "paid", "unpaid"]),
-    from: z.string().min(1, "Start date is required"),
-    to: z.string().min(1, "End date is required"),
-    reason: z.string().trim().min(3, "Please give a reason (at least 3 characters)"),
-  })
-  .refine((d) => !d.from || !d.to || new Date(d.to) >= new Date(d.from), {
-    message: "End date must be on or after the start date",
-    path: ["to"],
-  });
-
 export const changePasswordSchema = z.object({
   current: z.string().min(1, "Current password is required"),
   next: z.string().min(6, "New password must be at least 6 characters"),
-});
-
-export const taskReportSchema = z.object({
-  title: z.string().trim().min(3, "Title must be at least 3 characters"),
-  description: z.string().trim().min(5, "Please describe the task (at least 5 characters)"),
-  date: z.string().min(1, "Date is required"),
-  status: z.enum(["completed", "in-progress", "pending"]),
 });
 
 // Validate `data` against `schema`.

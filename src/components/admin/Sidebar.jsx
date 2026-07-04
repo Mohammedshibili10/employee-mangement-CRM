@@ -9,8 +9,8 @@ const menu = [
   { name: "Employees", path: "/admin/employees", icon: "employees" },
   { name: "Departments", path: "/admin/departments", icon: "departments" },
   { name: "Attendance", path: "/admin/attendance", icon: "attendance" },
-  { name: "Leave Requests", path: "/admin/leaves", icon: "leaves" },
-  { name: "Task Reports", path: "/admin/task-reports", icon: "tasks" },
+  { name: "Salary Report", path: "/admin/salary", icon: "salary" },
+  { name: "LOP", path: "/admin/lop", icon: "lop" },
   { name: "Reports", path: "/admin/reports", icon: "reports" },
   { name: "Settings", path: "/admin/settings", icon: "settings" },
 ];

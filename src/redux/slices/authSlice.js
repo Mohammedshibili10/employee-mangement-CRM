@@ -1,10 +1,25 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const savedToken = localStorage.getItem('token');
-const savedUser = localStorage.getItem('user');
+// Safely read the saved user. If localStorage holds corrupt/invalid JSON we
+// must NOT throw here — this runs at store-init (before React renders), so an
+// exception would white-screen the whole app with no way to recover.
+function loadSavedUser() {
+    try {
+        const raw = localStorage.getItem('user');
+        return raw ? JSON.parse(raw) : null;
+    } catch {
+        // Corrupt value — drop it so the app can still boot (to the login page).
+        localStorage.removeItem('user');
+        localStorage.removeItem('token');
+        return null;
+    }
+}
+
+const savedUser = loadSavedUser();
+const savedToken = savedUser ? localStorage.getItem('token') : null;
 
 const initialState = {
-    user: savedUser ? JSON.parse(savedUser) : null,
+    user: savedUser,
     token: savedToken ? savedToken : null,
     profilePhoto: null,
     loading: false,

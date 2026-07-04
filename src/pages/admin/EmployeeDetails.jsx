@@ -1,9 +1,20 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Button from "../../components/common/Button.jsx";
-import OnboardingStatus from "../../components/admin/OnboardingStatus.jsx";
+import Modal from "../../components/common/Modal.jsx";
+import Input from "../../components/common/Input.jsx";
 import Skeleton, { SkeletonCard } from "../../components/common/Skeleton.jsx";
-import { getEmployeeApi } from "../../api/employeeApi.js";
+import { getEmployeeApi, updateEmployeeApi } from "../../api/employeeApi.js";
+import { getDepartmentsApi } from "../../api/departmentApi.js";
+import { employeeSchema, validate } from "../../validation/schemas.js";
+
+// Turn a stored date (ISO string) into the YYYY-MM-DD a <input type="date"> needs.
+function toDateInput(d) {
+  if (!d) return "";
+  const date = new Date(d);
+  if (isNaN(date.getTime())) return "";
+  return date.toISOString().slice(0, 10);
+}
 
 function EmployeeDetails() {
   const { id } = useParams();
@@ -12,6 +23,13 @@ function EmployeeDetails() {
   const [employee, setEmployee] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+
+  // Edit modal state.
+  const [departments, setDepartments] = useState([]);
+  const [editOpen, setEditOpen] = useState(false);
+  const [form, setForm] = useState(null);
+  const [formErrors, setFormErrors] = useState({});
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     async function loadEmployee() {
@@ -29,6 +47,68 @@ function EmployeeDetails() {
     }
     loadEmployee();
   }, [id]);
+
+  // Load departments once, for the edit form's dropdown.
+  useEffect(() => {
+    getDepartmentsApi()
+      .then((data) => setDepartments(data.departments))
+      .catch((err) => console.error("Failed to load departments:", err));
+  }, []);
+
+  function openEdit() {
+    setForm({
+      name: employee.name || "",
+      email: employee.email || "",
+      phone: employee.phone || "",
+      department: employee.department?._id || "",
+      designation: employee.designation || "",
+      salary: employee.salary ?? "",
+      joiningDate: toDateInput(employee.joiningDate),
+      status: employee.status || "active",
+    });
+    setFormErrors({});
+    setEditOpen(true);
+  }
+
+  function handleChange(e) {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  }
+
+  async function handleSave(e) {
+    e.preventDefault();
+
+    const check = validate(employeeSchema, form);
+    const errors = check.valid ? {} : { ...check.errors };
+    if (form.salary === "" || isNaN(Number(form.salary)) || Number(form.salary) < 0) {
+      errors.salary = "Enter a valid salary amount";
+    }
+    if (Object.keys(errors).length) {
+      setFormErrors(errors);
+      return;
+    }
+    setFormErrors({});
+
+    setSaving(true);
+    try {
+      const data = await updateEmployeeApi(employee._id, {
+        name: form.name,
+        email: form.email,
+        phoneNumber: form.phone, // backend maps phoneNumber -> phone
+        department: form.department,
+        designation: form.designation,
+        salary: Number(form.salary),
+        joiningDate: form.joiningDate,
+        status: form.status,
+      });
+      // Show the freshly-saved (and populated) record immediately.
+      setEmployee(data.employee);
+      setEditOpen(false);
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to update employee. Please try again.");
+    } finally {
+      setSaving(false);
+    }
+  }
 
   const Row = ({ label, value }) => (
     <div className="flex justify-between py-2 border-b border-slate-100 last:border-0">
@@ -51,8 +131,7 @@ function EmployeeDetails() {
             <Skeleton className="h-3 w-24" />
           </div>
         </div>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-          <SkeletonCard />
+        <div className="max-w-2xl">
           <SkeletonCard />
         </div>
       </div>
@@ -76,11 +155,19 @@ function EmployeeDetails() {
     ? new Date(employee.joiningDate).toLocaleDateString()
     : "-";
 
+  const salary =
+    employee.salary != null && employee.salary !== 0
+      ? `₹${Number(employee.salary).toLocaleString()}`
+      : "-";
+
   return (
     <div>
       <div className="flex items-center justify-between mb-5">
         <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Employee Details</h2>
-        <Button color="gray" onClick={() => navigate("/admin/employees")}>Back</Button>
+        <div className="flex gap-2">
+          <Button color="green" onClick={openEdit}>Edit</Button>
+          <Button color="gray" onClick={() => navigate("/admin/employees")}>Back</Button>
+        </div>
       </div>
 
       <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6 mb-5 flex flex-col sm:flex-row sm:items-center gap-4">
@@ -116,23 +203,71 @@ function EmployeeDetails() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+      <div className="max-w-2xl">
+        <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6">
+          <h3 className="font-bold text-slate-800 mb-3">Personal Information</h3>
+          <Row label="Email" value={employee.email} />
+          <Row label="Phone" value={employee.phone} />
 
-        <div className="space-y-5">
-          <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6">
-            <h3 className="font-bold text-slate-800 mb-3">Personal Information</h3>
-            <Row label="Email" value={employee.email} />
-            <Row label="Phone" value={employee.phone} />
-
-            <h3 className="font-bold text-slate-800 mt-5 mb-3">Department Information</h3>
-            <Row label="Department" value={employee.department?.name || "-"} />
-            <Row label="Designation" value={employee.designation} />
-            <Row label="Joining Date" value={joiningDate} />
-          </div>
+          <h3 className="font-bold text-slate-800 mt-5 mb-3">Department Information</h3>
+          <Row label="Department" value={employee.department?.name || "-"} />
+          <Row label="Designation" value={employee.designation} />
+          <Row label="Salary" value={salary} />
+          <Row label="Joining Date" value={joiningDate} />
         </div>
-
-        <OnboardingStatus onboarding={employee.onboarding || {}} />
       </div>
+
+      <Modal isOpen={editOpen} onClose={() => setEditOpen(false)} title="Edit Employee" size="lg">
+        {form && (
+          <form onSubmit={handleSave} noValidate>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
+              <Input label="Full Name" name="name" value={form.name} onChange={handleChange} error={formErrors.name} />
+              <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={formErrors.email} />
+              <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} error={formErrors.phone} />
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Department</label>
+                <select
+                  name="department"
+                  value={form.department}
+                  onChange={handleChange}
+                  className={`w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 ${
+                    formErrors.department ? "border-rose-400 focus:ring-rose-300" : "border-slate-300 focus:ring-green-500"
+                  }`}
+                >
+                  <option value="">Select Department</option>
+                  {departments.map((d) => (
+                    <option key={d._id} value={d._id}>{d.name}</option>
+                  ))}
+                </select>
+                {formErrors.department && <p className="text-xs text-rose-600 mt-1">{formErrors.department}</p>}
+              </div>
+
+              <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} error={formErrors.designation} />
+              <Input label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} error={formErrors.salary} />
+              <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} error={formErrors.joiningDate} />
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>
+                <select
+                  name="status"
+                  value={form.status}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="active">Active</option>
+                  <option value="inactive">Inactive</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-3 mt-4">
+              <Button type="submit" color="green" loading={saving}>{saving ? "Saving..." : "Save Changes"}</Button>
+              <Button color="gray" onClick={() => setEditOpen(false)}>Cancel</Button>
+            </div>
+          </form>
+        )}
+      </Modal>
     </div>
   );
 }

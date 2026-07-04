@@ -9,16 +9,19 @@ import { getEmployeesApi, createEmployeeApi, deleteEmployeeApi } from "../../api
 import { getDepartmentsApi } from "../../api/departmentApi.js";
 import { employeeSchema, validate } from "../../validation/schemas.js";
 
+// Employee IDs start with a fixed "RAC0" prefix; the admin fills in the rest.
+const EMP_ID_PREFIX = "RAC0";
+
 const emptyForm = {
+  empIdSuffix: "",
   name: "",
   email: "",
-  password: "",
   phone: "",
   department: "",
   designation: "",
+  salary: "",
   joiningDate: "",
   status: "active",
-  sendWhatsApp: true,
 };
 
 function Employees() {
@@ -86,8 +89,15 @@ function Employees() {
     e.preventDefault();
 
     const check = validate(employeeSchema, form);
-    if (!check.valid) {
-      setFormErrors(check.errors);
+    const errors = check.valid ? {} : { ...check.errors };
+    if (!form.empIdSuffix.trim()) {
+      errors.empId = "Enter the ID after the RAC0 prefix";
+    }
+    if (!form.salary || isNaN(Number(form.salary)) || Number(form.salary) <= 0) {
+      errors.salary = "Enter a valid salary amount";
+    }
+    if (Object.keys(errors).length) {
+      setFormErrors(errors);
       return;
     }
     setFormErrors({});
@@ -96,15 +106,15 @@ function Employees() {
     try {
 
       const data = await createEmployeeApi({
+        empId: `${EMP_ID_PREFIX}${form.empIdSuffix.trim()}`,
         name: form.name,
         email: form.email,
-        password: form.password,
         phoneNumber: form.phone,
         department: form.department,
         designation: form.designation,
+        salary: Number(form.salary),
         joiningDate: form.joiningDate,
         status: form.status,
-        sendWhatsApp: form.sendWhatsApp,
       });
       await fetchEmployees();
       setForm(emptyForm);
@@ -187,10 +197,37 @@ function Employees() {
       >
         <form onSubmit={handleAdd} noValidate>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Employee ID</label>
+              <div
+                className={`flex rounded-xl border bg-slate-50/60 overflow-hidden transition-all focus-within:bg-white focus-within:ring-4 ${
+                  formErrors.empId
+                    ? "border-rose-300 focus-within:border-rose-400 focus-within:ring-rose-500/15"
+                    : "border-slate-200 focus-within:border-brand-400 focus-within:ring-brand-500/15"
+                }`}
+              >
+                <span className="px-3.5 py-2.5 text-sm font-semibold text-slate-500 bg-slate-100 border-r border-slate-200 select-none">
+                  {EMP_ID_PREFIX}
+                </span>
+                <input
+                  name="empIdSuffix"
+                  value={form.empIdSuffix}
+                  onChange={handleChange}
+                  placeholder="01"
+                  className="flex-1 min-w-0 bg-transparent px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
+                />
+              </div>
+              {formErrors.empId ? (
+                <p className="text-xs text-rose-600 mt-1.5">{formErrors.empId}</p>
+              ) : (
+                <p className="text-xs text-slate-400 mt-1.5">
+                  Full ID: <span className="font-semibold text-slate-600">{EMP_ID_PREFIX}{form.empIdSuffix || "…"}</span>
+                </p>
+              )}
+            </div>
+
             <Input label="Full Name" name="name" value={form.name} onChange={handleChange} placeholder="John Doe" error={formErrors.name} />
             <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} placeholder="john@company.com" error={formErrors.email} />
-
-            <Input label="Login Password" name="password" type="password" value={form.password} onChange={handleChange} placeholder="At least 6 characters" error={formErrors.password} />
 
             <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} placeholder="9876543210" error={formErrors.phone} />
 
@@ -213,6 +250,7 @@ function Employees() {
             </div>
 
             <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} placeholder="Developer" error={formErrors.designation} />
+            <Input label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} placeholder="30000" error={formErrors.salary} />
             <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} error={formErrors.joiningDate} />
 
             <div className="mb-4">
@@ -228,16 +266,6 @@ function Employees() {
               </select>
             </div>
           </div>
-
-          <label className="flex items-center gap-2 mb-1 mt-1 text-sm text-slate-700 cursor-pointer">
-            <input
-              type="checkbox"
-              checked={form.sendWhatsApp}
-              onChange={(e) => setForm({ ...form, sendWhatsApp: e.target.checked })}
-              className="h-4 w-4 accent-green-600"
-            />
-            Send WhatsApp Invitation
-          </label>
 
           <div className="flex gap-3 mt-4">
             <Button type="submit" color="green" loading={saving}>{saving ? "Saving..." : "Create Employee"}</Button>
@@ -275,25 +303,7 @@ function Employees() {
                 <span className="text-slate-500">Phone Number</span>
                 <span className="font-medium text-slate-800">{created.phone}</span>
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-slate-500">WhatsApp Invitation</span>
-                {created.whatsappSent ? (
-                  <span className="px-2 py-0.5 rounded-full bg-green-100 text-green-700 text-xs font-medium">
-                    Sent
-                  </span>
-                ) : (
-                  <span className="px-2 py-0.5 rounded-full bg-slate-200 text-slate-600 text-xs font-medium">
-                    Not sent
-                  </span>
-                )}
-              </div>
             </div>
-
-            {created.whatsappSent && (
-              <p className="text-xs text-slate-500 mt-3">
-                Invitation sent to {created.phone}
-              </p>
-            )}
 
             <div className="flex gap-3 justify-center mt-5">
               <Button
