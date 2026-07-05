@@ -191,8 +191,7 @@ function Deductions() {
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Deductions</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Loss of Pay (LOP) for <span className="font-semibold text-slate-700">{MONTHS[month]} {year}</span>.
-            Attendance-marked LOP syncs in automatically and is deducted in payroll.
+            All Loss of Pay for <span className="font-semibold text-slate-700">{MONTHS[month]} {year}</span> — manual entries, attendance-marked LOP, and unpaid absences.
           </p>
         </div>
         <Button color="green" onClick={openAdd}>+ Add LOP</Button>
@@ -243,16 +242,22 @@ function Deductions() {
                     </td>
                     <td className="px-4 py-3 text-slate-600 max-w-xs truncate" title={en.reason}>{en.reason || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${en.source === "attendance" ? "bg-sky-100 text-sky-700" : "bg-brand-100 text-brand-700"}`}>
-                        {en.source === "attendance" ? "Attendance" : "Manual"}
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${en.absence ? "bg-slate-100 text-slate-600" : en.source === "attendance" ? "bg-sky-100 text-sky-700" : "bg-brand-100 text-brand-700"}`}>
+                        {en.absence ? "Absent" : en.source === "attendance" ? "Attendance" : "Manual"}
                       </span>
                       {en.pardoned && (
                         <span className="ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Pardoned</span>
                       )}
                     </td>
                     <td className="px-4 py-3 space-x-2 whitespace-nowrap">
-                      <button onClick={() => openEdit(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-brand-700 bg-brand-100 hover:bg-brand-200">Edit</button>
-                      <button onClick={() => handleDelete(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-100 hover:bg-rose-200">Delete</button>
+                      {en.absence ? (
+                        <span className="text-xs text-slate-400">Synced from Attendance</span>
+                      ) : (
+                        <>
+                          <button onClick={() => openEdit(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-brand-700 bg-brand-100 hover:bg-brand-200">Edit</button>
+                          <button onClick={() => handleDelete(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-100 hover:bg-rose-200">Delete</button>
+                        </>
+                      )}
                     </td>
                   </tr>
                 ))}

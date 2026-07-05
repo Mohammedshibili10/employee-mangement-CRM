@@ -83,7 +83,7 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
           <Row label="Sick Leave (taken)" value={sick} />
           <Row label="Casual Leave (taken)" value={casual} />
           <Row label="Total Paid Leave (max 2)" value={paidLeave} strong />
-          <Row label="LOP (Loss of Pay)" value={report.lop} />
+          <Row label="LOP (Loss of Pay)" value={(report.lop || 0) + (report.lopDays || 0)} />
           <Row label="Actual Pay" value={money(report.actualPay)} strong />
         </div>
 
