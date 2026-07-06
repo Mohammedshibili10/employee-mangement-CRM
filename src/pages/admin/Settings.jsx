@@ -1,19 +1,66 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import Input from "../../components/common/Input.jsx";
 import Button from "../../components/common/Button.jsx";
+import { updateProfileApi, changePasswordApi } from "../../api/authApi.js";
+import { updateUser } from "../../redux/slices/authSlice.js";
 
 function Settings() {
-  const [profile, setProfile] = useState({ name: "Admin", email: "admin@company.com" });
-  const [password, setPassword] = useState({ current: "", next: "" });
+  const user = useSelector((s) => s.auth.user);
+  const dispatch = useDispatch();
 
-  function saveProfile(e) {
+  const [profile, setProfile] = useState({ name: "", email: "" });
+  const [password, setPassword] = useState({ current: "", next: "" });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [profileMsg, setProfileMsg] = useState(null); // { ok: boolean, text: string }
+  const [passwordMsg, setPasswordMsg] = useState(null);
+
+  // Load the logged-in user's real name/email into the form.
+  useEffect(() => {
+    if (user) setProfile({ name: user.name || "", email: user.email || "" });
+  }, [user]);
+
+  async function saveProfile(e) {
     e.preventDefault();
-    alert("Profile saved (demo only)");
+    setProfileMsg(null);
+    if (!profile.name.trim() || !profile.email.trim()) {
+      setProfileMsg({ ok: false, text: "Name and email are required." });
+      return;
+    }
+    setSavingProfile(true);
+    try {
+      const data = await updateProfileApi({ name: profile.name.trim(), email: profile.email.trim() });
+      dispatch(updateUser(data.user));
+      setProfileMsg({ ok: true, text: "Profile updated successfully." });
+    } catch (err) {
+      setProfileMsg({ ok: false, text: err.response?.data?.message || "Failed to update profile." });
+    } finally {
+      setSavingProfile(false);
+    }
   }
 
-  function savePassword(e) {
+  async function savePassword(e) {
     e.preventDefault();
-    alert("Password changed (demo only)");
+    setPasswordMsg(null);
+    if (!password.current || !password.next) {
+      setPasswordMsg({ ok: false, text: "Enter both your current and new password." });
+      return;
+    }
+    if (password.next.length < 6) {
+      setPasswordMsg({ ok: false, text: "New password must be at least 6 characters." });
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      await changePasswordApi({ currentPassword: password.current, newPassword: password.next });
+      setPassword({ current: "", next: "" });
+      setPasswordMsg({ ok: true, text: "Password changed successfully." });
+    } catch (err) {
+      setPasswordMsg({ ok: false, text: err.response?.data?.message || "Failed to change password." });
+    } finally {
+      setSavingPassword(false);
+    }
   }
 
   return (
@@ -35,7 +82,10 @@ function Settings() {
             value={profile.email}
             onChange={(e) => setProfile({ ...profile, email: e.target.value })}
           />
-          <Button type="submit">Save Changes</Button>
+          <Button type="submit" color="green" loading={savingProfile}>Save Changes</Button>
+          {profileMsg && (
+            <p className={`text-sm mt-3 ${profileMsg.ok ? "text-brand-600" : "text-rose-600"}`}>{profileMsg.text}</p>
+          )}
         </form>
 
         <form onSubmit={savePassword} className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-6">
@@ -52,7 +102,10 @@ function Settings() {
             value={password.next}
             onChange={(e) => setPassword({ ...password, next: e.target.value })}
           />
-          <Button type="submit" color="green">Update Password</Button>
+          <Button type="submit" color="green" loading={savingPassword}>Update Password</Button>
+          {passwordMsg && (
+            <p className={`text-sm mt-3 ${passwordMsg.ok ? "text-brand-600" : "text-rose-600"}`}>{passwordMsg.text}</p>
+          )}
         </form>
       </div>
     </div>

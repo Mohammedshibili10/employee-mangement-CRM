@@ -13,6 +13,14 @@ export const getMeApi = async () => {
   return res.data.user;
 };
 
+export const updateProfileApi = async (data) => {
+  const token = localStorage.getItem("token");
+  const res = await axios.put("/api/auth/profile", data, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
 export const changePasswordApi = async (data) => {
   const token = localStorage.getItem("token");
   const res = await axios.put("/api/auth/change-password", data, {
