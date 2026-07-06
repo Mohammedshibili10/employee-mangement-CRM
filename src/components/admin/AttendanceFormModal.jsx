@@ -38,7 +38,15 @@ function WarningIcon({ title }) {
   );
 }
 
-const emptySingle = { employeeId: "", date: todayStr(), checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "" };
+const emptySingle = { employeeId: "", date: todayStr(), status: "present", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "" };
+
+// Short explanation of how each status affects the salary — shown under the picker.
+const STATUS_HINTS = {
+  present: "Present — counts as a full day; full day's pay.",
+  late: "Late — counts as a full day, minus a late-arrival deduction based on the check-in time.",
+  "half-day": "Half Day — counts as half a day; half a day's pay.",
+  leave: "Full Leave — Sick/Casual are paid (within the monthly cap); None = unpaid (counts as LOP).",
+};
 
 function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }) {
   const isEdit = !!editRecord;
@@ -68,6 +76,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
       setSingle({
         employeeId: editRecord.employee?._id || "",
         date: toDayStr(editRecord.date),
+        status: editRecord.leaveType ? "leave" : (editRecord.status || "present"),
         checkIn: timeStr(editRecord.checkIn),
         checkOut: timeStr(editRecord.checkOut),
         leaveType: editRecord.leaveType || "",
@@ -103,7 +112,9 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           const checkOut = ex ? timeStr(ex.checkOut) : "";
           const leaveType = ex ? ex.leaveType || "" : "";
           const lopNum = ex && ex.lop != null ? Number(ex.lop) : 0;
+          const status = ex ? (ex.leaveType ? "leave" : (ex.status || "")) : "";
           rows[emp._id] = {
+            status,
             checkIn,
             checkOut,
             leaveType,
@@ -111,7 +122,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             lop: lopNum > 0 ? String(lopNum) : "",
             existingId: ex ? ex._id : null,
             existingStatus: ex ? ex.status : null,
-            orig: { checkIn, checkOut, leaveType, lop: lopNum },
+            orig: { status, checkIn, checkOut, leaveType, lop: lopNum },
           };
         });
         setBulk(rows);
@@ -139,6 +150,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         setSingleExistingRecord(ex);
         setSingle((s) => ({
           ...s,
+          status: ex ? (ex.leaveType ? "leave" : (ex.status || "present")) : "present",
           checkIn: ex ? timeStr(ex.checkIn) : "",
           checkOut: ex ? timeStr(ex.checkOut) : "",
           leaveType: ex ? ex.leaveType || "" : "",
@@ -154,21 +166,34 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   // ---- single ----
   const singleExisting = !isEdit ? singleExistingRecord : null;
   const selectedEmp = employees.find((e) => e._id === single.employeeId);
-  const singleIsLeave = !!single.leaveType;
+  const singleIsLeave = single.status === "leave";
+
+  // Changing the status keeps the rest of the form consistent (leave clears
+  // check-in/out & LOP; a work status clears the leave type).
+  function setSingleStatus(status) {
+    setSingle((s) => ({
+      ...s,
+      status,
+      leaveType: status === "leave" ? (s.leaveType || "sick") : "",
+      lopChecked: status === "leave" ? false : s.lopChecked,
+      lop: status === "leave" ? "" : s.lop,
+    }));
+  }
 
   async function handleSingleSave() {
     if (!single.employeeId) return setSingleError("Please select an employee.");
     if (!single.date) return setSingleError("Please choose a date.");
     if (!singleIsLeave && !single.checkIn && !isEdit)
-      return setSingleError("Set a check-in time, or choose a leave type.");
+      return setSingleError("Set a check-in time, or choose Full Leave as the status.");
     setSingleError("");
     setSaving(true);
     try {
       const payload = singleIsLeave
-        ? { employee: single.employeeId, date: single.date, leaveType: single.leaveType }
+        ? { employee: single.employeeId, date: single.date, status: "leave", leaveType: single.leaveType }
         : {
             employee: single.employeeId,
             date: single.date,
+            status: single.status,
             checkIn: combine(single.date, single.checkIn),
             checkOut: combine(single.date, single.checkOut),
             leaveType: "",
@@ -196,7 +221,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   }
 
   // ---- bulk ----
-  const emptyRow = { checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", existingId: null, existingStatus: null, orig: { checkIn: "", checkOut: "", leaveType: "", lop: 0 } };
+  const emptyRow = { status: "", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", existingId: null, existingStatus: null, orig: { status: "", checkIn: "", checkOut: "", leaveType: "", lop: 0 } };
   function rowOf(empId) {
     return bulk[empId] || emptyRow;
   }
@@ -206,12 +231,30 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
       return { ...prev, [empId]: { ...cur, [field]: value } };
     });
   }
+  // Picking a status keeps the row consistent (Full Leave clears check-in/out & LOP
+  // and defaults the leave type; a work status clears the leave type).
+  function setRowStatus(empId, status) {
+    setBulk((prev) => {
+      const cur = prev[empId] || emptyRow;
+      return {
+        ...prev,
+        [empId]: {
+          ...cur,
+          status,
+          leaveType: status === "leave" ? (cur.leaveType || "sick") : "",
+          lopChecked: status === "leave" ? false : cur.lopChecked,
+          lop: status === "leave" ? "" : cur.lop,
+        },
+      };
+    });
+  }
 
   async function handleBulkSave() {
     // Only save the rows the user actually changed (create new, update existing).
     const changed = employees
       .map((emp) => ({ emp, row: rowOf(emp._id) }))
       .filter(({ row }) =>
+        row.status !== row.orig.status ||
         row.checkIn !== row.orig.checkIn ||
         row.checkOut !== row.orig.checkOut ||
         row.leaveType !== row.orig.leaveType ||
@@ -226,11 +269,12 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
     setSaving(true);
     let created = 0, updated = 0, skipped = 0;
     for (const { emp, row } of changed) {
-      const payload = row.leaveType
-        ? { employee: emp._id, date: bulkDate, leaveType: row.leaveType }
+      const payload = row.status === "leave"
+        ? { employee: emp._id, date: bulkDate, status: "leave", leaveType: row.leaveType }
         : {
             employee: emp._id,
             date: bulkDate,
+            status: row.status || undefined,
             checkIn: combine(bulkDate, row.checkIn),
             checkOut: combine(bulkDate, row.checkOut),
             leaveType: "",
@@ -238,7 +282,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           };
       try {
         if (row.existingId) { await updateAttendanceApi(row.existingId, payload); updated++; }
-        else if (row.checkIn || row.leaveType) { await markAttendanceApi(payload); created++; }
+        else if (row.status || row.checkIn) { await markAttendanceApi(payload); created++; }
         else { skipped++; }
       } catch {
         skipped++;
@@ -295,16 +339,26 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
               <input type="date" value={single.date} onChange={(e) => setSingle({ ...single, date: e.target.value })} className={inputCls} />
             </div>
             <div className="mb-4">
-              <label className="block text-sm font-medium text-slate-700 mb-1.5">
-                Leave Type <span className="text-slate-400 font-normal">(optional)</span>
-              </label>
-              <select value={single.leaveType} onChange={(e) => setSingle({ ...single, leaveType: e.target.value })} className={inputCls}>
-                <option value="">No leave — mark attendance</option>
-                <option value="sick">Sick Leave</option>
-                <option value="casual">Casual Leave</option>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
+              <select value={single.status} onChange={(e) => setSingleStatus(e.target.value)} className={inputCls}>
+                <option value="present">Present</option>
+                <option value="late">Late</option>
+                <option value="half-day">Half Day</option>
+                <option value="leave">Full Leave</option>
               </select>
             </div>
           </div>
+
+          {single.status === "leave" && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">Leave Type</label>
+              <select value={single.leaveType} onChange={(e) => setSingle({ ...single, leaveType: e.target.value })} className={inputCls}>
+                <option value="">None — unpaid (counts as LOP)</option>
+                <option value="sick">Sick Leave (paid)</option>
+                <option value="casual">Casual Leave (paid)</option>
+              </select>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div className="mb-2">
@@ -341,9 +395,11 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             )}
           </div>
 
+          <p className="text-xs text-brand-600 mb-3">{STATUS_HINTS[single.status]}</p>
+
           {singleIsLeave && (
-            <p className="text-xs text-brand-600 mb-3">
-              Paid leave — check-in/out are not required, and this day is excluded from LOP and salary deduction.
+            <p className="text-xs text-slate-500 mb-3">
+              Check-in/out are not required for a full leave day.
             </p>
           )}
 
@@ -395,27 +451,24 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           ) : (
             <div className="overflow-x-auto scrollbar-slim">
               <div className="min-w-[760px]">
-                <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.8fr_1.3fr_0.9fr] gap-2 px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
-                  <span>Employee</span><span>Check-in</span><span>Check-out</span><span>Leave</span><span>LOP</span><span>Status</span>
+                <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_0.9fr_1fr] gap-2 px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+                  <span>Employee</span><span>Check-in</span><span>Check-out</span><span>Leave Type</span><span>LOP</span><span>Status</span>
                 </div>
 
                 <div className="space-y-1 max-h-[46vh] overflow-y-auto scrollbar-slim pr-1">
                   {employees.map((emp) => {
                     const row = rowOf(emp._id);
-                    const isLeave = !!row.leaveType;
-                    const statusText = row.existingId
-                      ? (row.leaveType ? `${row.leaveType} leave` : row.existingStatus)
-                      : "Not marked";
+                    const isLeave = row.status === "leave";
                     return (
                       <div
                         key={emp._id}
-                        className={`grid grid-cols-[1.4fr_0.9fr_0.9fr_0.8fr_1.3fr_0.9fr] gap-2 items-center rounded-lg px-2 py-1.5 ${row.existingId ? "bg-brand-50/50" : "hover:bg-slate-50"}`}
+                        className={`grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_0.9fr_1fr] gap-2 items-center rounded-lg px-2 py-1.5 ${row.existingId ? "bg-brand-50/50" : "hover:bg-slate-50"}`}
                       >
                         <span className="text-sm text-slate-700 truncate">{emp.name}</span>
                         <input type="time" value={row.checkIn} disabled={isLeave} onChange={(e) => setRow(emp._id, "checkIn", e.target.value)} className={cellCls} />
                         <input type="time" value={row.checkOut} disabled={isLeave} onChange={(e) => setRow(emp._id, "checkOut", e.target.value)} className={cellCls} />
-                        <select value={row.leaveType} onChange={(e) => setRow(emp._id, "leaveType", e.target.value)} className={cellCls}>
-                          <option value="">—</option>
+                        <select value={row.leaveType} disabled={!isLeave} onChange={(e) => setRow(emp._id, "leaveType", e.target.value)} className={cellCls}>
+                          <option value="">None</option>
                           <option value="sick">Sick</option>
                           <option value="casual">Casual</option>
                         </select>
@@ -432,9 +485,13 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                             <input type="number" min="0" step="0.5" value={row.lop} placeholder="0" onChange={(e) => setRow(emp._id, "lop", e.target.value)} className="w-16 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20" />
                           )}
                         </div>
-                        <span className={`text-xs font-medium capitalize ${row.existingId ? "text-brand-700" : "text-slate-400"}`}>
-                          {statusText}
-                        </span>
+                        <select value={row.status} onChange={(e) => setRowStatus(emp._id, e.target.value)} className={cellCls}>
+                          <option value="">—</option>
+                          <option value="present">Present</option>
+                          <option value="late">Late</option>
+                          <option value="half-day">Half Day</option>
+                          <option value="leave">Full Leave</option>
+                        </select>
                       </div>
                     );
                   })}

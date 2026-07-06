@@ -281,7 +281,7 @@ function Employees() {
       >
         {created && (
           <div className="text-center">
-            <div className="mx-auto h-14 w-14 rounded-full bg-green-100 text-green-600 flex items-center justify-center text-3xl mb-3">
+            <div className="mx-auto h-14 w-14 rounded-full bg-brand-100 text-brand-700 flex items-center justify-center text-3xl mb-3">
               ✓
             </div>
             <h3 className="text-lg font-semibold text-slate-800">
@@ -295,7 +295,7 @@ function Employees() {
               </div>
               <div className="flex justify-between items-center">
                 <span className="text-slate-500">Employee ID</span>
-                <span className="px-2 py-0.5 rounded-md bg-green-100 text-green-700 text-xs font-semibold">
+                <span className="px-2 py-0.5 rounded-md bg-brand-100 text-brand-700 text-xs font-semibold">
                   {created.empId}
                 </span>
               </div>

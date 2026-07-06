@@ -1,4 +1,5 @@
 /** @type {import('tailwindcss').Config} */
+
 export default {
   content: ["./index.html", "./src/**/*.{js,jsx}"],
   theme: {
@@ -8,7 +9,7 @@ export default {
         sans: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
       },
 
-      // Brand palette (emerald-based green) so we can use bg-brand-500 etc.
+      // Brand palette (emerald) so we can use bg-brand-500 etc.
       colors: {
         brand: {
           50: "#ecfdf5",
@@ -38,7 +39,7 @@ export default {
         "brand-gradient": "linear-gradient(135deg, #34d399 0%, #10b981 45%, #059669 100%)",
         "brand-gradient-soft": "linear-gradient(135deg, #ecfdf5 0%, #ffffff 100%)",
         "app-radial":
-          "radial-gradient(1200px 600px at 100% -10%, rgba(16,185,129,0.10), transparent 60%), radial-gradient(900px 500px at -10% 10%, rgba(45,212,191,0.10), transparent 55%)",
+          "radial-gradient(1200px 600px at 100% -10%, rgba(16,185,129,0.1), transparent 60%), radial-gradient(900px 500px at -10% 10%, rgba(45,212,191,0.1), transparent 55%)",
         shimmer:
           "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.65) 50%, transparent 100%)",
       },
