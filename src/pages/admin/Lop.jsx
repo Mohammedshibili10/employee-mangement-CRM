@@ -39,6 +39,7 @@ const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 
 function Deductions() {
   const [entries, setEntries] = useState([]);
+  const [salaryByEmp, setSalaryByEmp] = useState({});
   const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -90,8 +91,17 @@ function Deductions() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getDeductionsApi({ month, year });
+      // Deductions + the month's salary reports (for each employee's per-day pay).
+      const [data, salary] = await Promise.all([
+        getDeductionsApi({ month, year }),
+        getSalaryReportsApi({ month, year }).catch(() => ({ reports: [] })),
+      ]);
       setEntries(data.entries || []);
+      const map = {};
+      (salary.reports || []).forEach((r) => {
+        map[r.empId] = { monthlySalary: r.monthlySalary || 0, workingDays: r.monthlyWorkingDays || 30 };
+      });
+      setSalaryByEmp(map);
     } catch (err) {
       console.error("Failed to load deductions:", err);
       setError(err.response?.data?.message || "Failed to load deductions.");
@@ -179,6 +189,16 @@ function Deductions() {
   const q = search.trim().toLowerCase();
   const filtered = entries.filter((e) => !q || (e.employeeName || "").toLowerCase().includes(q) || (e.empId || "").toLowerCase().includes(q));
 
+  // ₹ value of a LOP entry (per-day pay × LOP days). For a pardoned entry this
+  // is the amount that was waived. Display only — no effect on any calculation.
+  function amountFor(en) {
+    const s = salaryByEmp[en.empId];
+    const monthlySalary = s ? s.monthlySalary : (employees.find((e) => e.empId === en.empId)?.salary || 0);
+    const workingDays = s ? s.workingDays : 30;
+    if (!workingDays) return 0;
+    return Math.round((monthlySalary / workingDays) * (Number(en.days) || 0));
+  }
+
   // Live LOP deduction preview for the form (per-day pay × LOP days).
   const perDay = calc.workingDays > 0 ? calc.monthlySalary / calc.workingDays : 0;
   const lopAmount = Math.round(perDay * (Number(form.days) || 0));
@@ -214,7 +234,7 @@ function Deductions() {
         />
       </div>
 
-      {loading && <SkeletonTable rows={6} cols={6} />}
+      {loading && <SkeletonTable rows={6} cols={8} />}
       {error && <p className="text-center text-rose-500 mt-6">{error}</p>}
 
       {!loading && !error && (
@@ -223,7 +243,7 @@ function Deductions() {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200/70">
                 <tr>
-                  {["Employee", "Month", "Date", "LOP Days", "Reason", "Source", "Actions"].map((h) => (
+                  {["Employee", "Month", "Date", "LOP Days", "Amount", "Reason", "Source", "Actions"].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -239,6 +259,9 @@ function Deductions() {
                     <td className="px-4 py-3 text-slate-600">{formatDate(en.date)}</td>
                     <td className="px-4 py-3 font-semibold">
                       <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"}>{en.days}</span>
+                    </td>
+                    <td className="px-4 py-3 font-semibold">
+                      <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"} title={en.pardoned ? "Waived (pardoned)" : "Deducted from pay"}>{money(amountFor(en))}</span>
                     </td>
                     <td className="px-4 py-3 text-slate-600 max-w-xs truncate" title={en.reason}>{en.reason || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
