@@ -9,8 +9,8 @@ import { getEmployeesApi, createEmployeeApi, deleteEmployeeApi } from "../../api
 import { getDepartmentsApi } from "../../api/departmentApi.js";
 import { employeeSchema, validate } from "../../validation/schemas.js";
 
-// Employee IDs start with a fixed "RAC0" prefix; the admin fills in the rest.
-const EMP_ID_PREFIX = "RAC0";
+// Employee IDs start with a fixed "RAC" prefix; the admin fills in the rest.
+const EMP_ID_PREFIX = "RAC";
 
 const emptyForm = {
   empIdSuffix: "",
@@ -91,7 +91,7 @@ function Employees() {
     const check = validate(employeeSchema, form);
     const errors = check.valid ? {} : { ...check.errors };
     if (!form.empIdSuffix.trim()) {
-      errors.empId = "Enter the ID after the RAC0 prefix";
+      errors.empId = "Enter the ID after the RAC prefix";
     }
     if (!form.salary || isNaN(Number(form.salary)) || Number(form.salary) <= 0) {
       errors.salary = "Enter a valid salary amount";
@@ -213,7 +213,7 @@ function Employees() {
                   name="empIdSuffix"
                   value={form.empIdSuffix}
                   onChange={handleChange}
-                  placeholder="01"
+                  placeholder="001E"
                   className="flex-1 min-w-0 bg-transparent px-3.5 py-2.5 text-sm text-slate-800 placeholder:text-slate-400 focus:outline-none"
                 />
               </div>

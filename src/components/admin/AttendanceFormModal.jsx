@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import Modal from "../common/Modal.jsx";
 import Button from "../common/Button.jsx";
+import SearchableSelect from "../common/SearchableSelect.jsx";
 import { markAttendanceApi, updateAttendanceApi, getAttendanceApi } from "../../api/attendanceApi.js";
 
 // ---- date/time helpers ----
@@ -320,17 +321,14 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         <div>
           <div className="mb-4">
             <label className="block text-sm font-medium text-slate-700 mb-1.5">Employee</label>
-            <select
+            <SearchableSelect
               value={single.employeeId}
-              onChange={(e) => setSingle({ ...single, employeeId: e.target.value })}
+              onChange={(val) => setSingle({ ...single, employeeId: val })}
+              options={employees.map((emp) => ({ value: emp._id, label: `${emp.name} (${emp.empId})` }))}
+              placeholder="Select an employee"
               disabled={isEdit}
               className={inputCls}
-            >
-              <option value="">Select an employee</option>
-              {employees.map((emp) => (
-                <option key={emp._id} value={emp._id}>{emp.name} ({emp.empId})</option>
-              ))}
-            </select>
+            />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Modal from "../common/Modal.jsx";
 import Button from "../common/Button.jsx";
 import { updateSalaryReportApi } from "../../api/salaryApi.js";
+import { getDeductionsApi } from "../../api/lopApi.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
@@ -25,6 +26,26 @@ function Row({ label, value, strong }) {
 
 function SalaryDetailModal({ report, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
+  const [pardonedDays, setPardonedDays] = useState(0);
+
+  // Pardoned (waived) LOP days for this employee/month — display only; it does
+  // NOT affect any of the computed salary figures.
+  useEffect(() => {
+    if (!report) return;
+    let cancelled = false;
+    setPardonedDays(0);
+    getDeductionsApi({ month: report.month, year: report.year })
+      .then((res) => {
+        if (cancelled) return;
+        const days = (res.entries || [])
+          .filter((e) => e.empId === report.empId && e.pardoned)
+          .reduce((sum, e) => sum + (Number(e.days) || 0), 0);
+        setPardonedDays(days);
+      })
+      .catch(() => { if (!cancelled) setPardonedDays(0); });
+    return () => { cancelled = true; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [report?._id, report?.empId, report?.month, report?.year]);
 
   if (!report) return null;
 
@@ -35,6 +56,8 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
   const recordedLopDays = report.lopDays || 0;
   const fixedDeductions = DEDUCTIONS.reduce((sum, d) => sum + (Number(report[d.key]) || 0), 0);
   const totalDeductions = (report.lopDeduction || 0) + fixedDeductions;
+  const perDay = report.monthlyWorkingDays > 0 ? report.monthlySalary / report.monthlyWorkingDays : 0;
+  const pardonedAmount = Math.round(pardonedDays * perDay);
 
   async function save(extra) {
     try {
@@ -100,6 +123,15 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
           <div className="border-t border-slate-100 mt-1 pt-1">
             <Row label="Total Deductions" value={money(totalDeductions)} />
           </div>
+
+          {pardonedDays > 0 && (
+            <div className="mt-2 flex justify-between rounded-lg bg-brand-50/60 px-2.5 py-1.5 text-sm">
+              <span className="text-slate-500">
+                Pardoned LOP <span className="text-slate-400">({pardonedDays} day{pardonedDays === 1 ? "" : "s"}, waived)</span>
+              </span>
+              <span className="font-semibold text-brand-700">{money(pardonedAmount)}</span>
+            </div>
+          )}
 
           <div className="mt-4 rounded-xl bg-brand-gradient-soft border border-brand-200 p-4 text-center">
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-700">Net Pay</p>
