@@ -135,11 +135,18 @@ function SalaryReport() {
   const totalPages = Math.max(1, Math.ceil(processed.length / PAGE_SIZE));
   const pageRows = processed.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
 
+  // Grand total of Net Pay across ALL filtered reports (not just the current page).
+  const grandTotalNetPay = useMemo(
+    () => processed.reduce((sum, r) => sum + (Number(r.netPay) || 0), 0),
+    [processed]
+  );
+
   // ---- exports ----
   function exportCsv() {
     const esc = (v) => `"${String(v ?? "").replace(/"/g, '""')}"`;
     const lines = [COLUMNS.map((c) => esc(c.label)).join(",")];
     processed.forEach((r) => lines.push(COLUMNS.map((c) => esc(c.get(r))).join(",")));
+    lines.push(COLUMNS.map((c) => esc(c.key === "netPay" ? grandTotalNetPay : c.key === "employeeName" ? "TOTAL NET PAY" : "")).join(","));
     downloadBlob(lines.join("\n"), "text/csv;charset=utf-8", "csv");
   }
   function exportExcel() {
@@ -147,7 +154,8 @@ function SalaryReport() {
     const body = processed
       .map((r) => `<tr>${COLUMNS.map((c) => `<td>${c.get(r)}</td>`).join("")}</tr>`)
       .join("");
-    const html = `<table border="1"><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>`;
+    const foot = `<tfoot><tr><td colspan="${COLUMNS.length - 1}" style="font-weight:bold;text-align:right">Total Net Pay</td><td style="font-weight:bold">${grandTotalNetPay}</td></tr></tfoot>`;
+    const html = `<table border="1"><thead><tr>${head}</tr></thead><tbody>${body}</tbody>${foot}</table>`;
     downloadBlob(html, "application/vnd.ms-excel", "xls");
   }
   function downloadBlob(content, type, ext) {
@@ -175,7 +183,9 @@ function SalaryReport() {
         th{background:#f1f5f9}
       </style></head><body>
       <h1>Salary Report — ${MONTHS[month]} ${year}</h1>
-      <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody></table>
+      <table><thead><tr>${head}</tr></thead><tbody>${body}</tbody>
+      <tfoot><tr><td colspan="${COLUMNS.length - 1}" style="text-align:right;font-weight:bold;background:#f1f5f9">Total Net Pay (${processed.length})</td><td style="font-weight:bold;background:#f1f5f9">${money(grandTotalNetPay)}</td></tr></tfoot>
+      </table>
       </body></html>`);
     win.document.close();
     win.focus();
@@ -290,6 +300,16 @@ function SalaryReport() {
                   );
                 })}
               </tbody>
+              {processed.length > 0 && (
+                <tfoot>
+                  <tr className="border-t-2 border-slate-200 bg-slate-50/80 font-bold text-slate-800">
+                    <td className="px-3 py-3 text-right uppercase tracking-wider text-[11px]" colSpan={COLUMNS.length - 1}>
+                      Total Net Pay ({processed.length} report{processed.length === 1 ? "" : "s"})
+                    </td>
+                    <td className="px-3 py-3 text-brand-700">{money(grandTotalNetPay)}</td>
+                  </tr>
+                </tfoot>
+              )}
             </table>
           </div>
 
