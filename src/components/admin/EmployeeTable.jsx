@@ -29,13 +29,11 @@ function EmployeeTable({ employees, onView, onDelete }) {
               {emp.status}
             </span>
           </td>
-          <td className="px-4 py-3 space-x-2">
-            <ActionButton color="green" onClick={() => onView(emp)}>
-              View
-            </ActionButton>
-            <ActionButton color="red" onClick={() => onDelete(emp._id)}>
-              Delete
-            </ActionButton>
+          <td className="px-4 py-3">
+            <div className="flex items-center gap-1.5">
+              <ActionButton color="green" icon="view" title="View" onClick={() => onView(emp)} />
+              <ActionButton color="red" icon="delete" title="Delete" onClick={() => onDelete(emp._id)} />
+            </div>
           </td>
         </tr>
       ))}

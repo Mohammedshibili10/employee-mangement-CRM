@@ -6,12 +6,14 @@ function statusClass(status) {
   if (status === "late") return "bg-amber-100 text-amber-700";
   if (status === "absent") return "bg-rose-100 text-rose-700";
   if (status === "leave") return "bg-sky-100 text-sky-700";
+  if (status === "wfh") return "bg-purple-100 text-purple-700";
   return "bg-slate-100 text-slate-500";
 }
 
 // Show "Sick Leave" / "Casual Leave" for leave records; otherwise the status.
 function statusLabel(row) {
   if (row.status === "leave" && row.leaveType) return `${row.leaveType} leave`;
+  if (row.status === "wfh") return "WFH";
   return row.status;
 }
 
@@ -53,7 +55,7 @@ function AttendanceTable({ records, onEdit }) {
           <td className="px-4 py-3 text-slate-600">{formatOvertime(row)}</td>
           {onEdit && (
             <td className="px-4 py-3">
-              <ActionButton color="blue" onClick={() => onEdit(row)}>Edit</ActionButton>
+              <ActionButton color="blue" icon="edit" title="Edit" onClick={() => onEdit(row)} />
             </td>
           )}
         </tr>

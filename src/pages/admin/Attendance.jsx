@@ -92,7 +92,7 @@ function Attendance() {
       acc[r.status] = (acc[r.status] || 0) + 1;
       return acc;
     },
-    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0 }
+    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0 }
   );
 
   const filtered =
@@ -120,6 +120,7 @@ function Attendance() {
     { label: "Late", value: summary.late, color: "text-amber-600" },
     { label: "Absent", value: summary.absent, color: "text-rose-600" },
     { label: "Leave", value: summary.leave, color: "text-sky-600" },
+    { label: "WFH", value: summary.wfh, color: "text-purple-600" },
   ];
 
   return (
@@ -176,7 +177,7 @@ function Attendance() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-5">
         {cards.map((c) => (
           <div
             key={c.label}
@@ -200,6 +201,7 @@ function Attendance() {
           <option value="absent">Absent</option>
           <option value="half-day">Half-day</option>
           <option value="leave">Leave</option>
+          <option value="wfh">WFH</option>
         </select>
 
         {/* Export is available for the Daily report. */}

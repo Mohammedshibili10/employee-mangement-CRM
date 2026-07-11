@@ -13,6 +13,7 @@ const DEDUCTIONS = [
   { key: "wfhDeduction", label: "WFH Deduction" },
   { key: "officeExpenses", label: "Office Expenses" },
   { key: "assetDeduction", label: "Asset Deduction" },
+  { key: "pfDeduction", label: "PF Deduction" },
 ];
 
 function Row({ label, value, strong }) {

@@ -54,6 +54,7 @@ function Deductions() {
   const [form, setForm] = useState({ employee: "", date: toDateInput(nowDate), days: "1", reason: "", pardoned: false });
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
+  const [editingEntryType, setEditingEntryType] = useState(null); // null | 'wfh'
   // Working days + monthly salary used to calculate the LOP deduction (display only).
   const [calc, setCalc] = useState({ workingDays: 0, monthlySalary: 0 });
 
@@ -113,6 +114,7 @@ function Deductions() {
   function openAdd() {
     setEditingId(null);
     setEditingSource(null);
+    setEditingEntryType(null);
     setForm({ employee: "", date: firstOfMonth(month, year), days: "1", reason: "", pardoned: false });
     setFormErrors({});
     setModalOpen(true);
@@ -121,6 +123,7 @@ function Deductions() {
   function openEdit(entry) {
     setEditingId(entry._id);
     setEditingSource(entry.source);
+    setEditingEntryType(entry.entryType || null);
     setForm({
       employee: entry.employee || "",
       date: toDateInput(entry.date),
@@ -143,7 +146,10 @@ function Deductions() {
 
     setSaving(true);
     try {
-      if (editingSource === "attendance") {
+      if (editingEntryType === 'wfh') {
+        // WFH entry: only wfhPardoned can be toggled here
+        await updateAttendanceApi(editingId, { wfhPardoned: !!form.pardoned });
+      } else if (editingSource === "attendance") {
         // Attendance-marked LOP: LOP days + pardon are adjustable here; that
         // updates the underlying attendance record and re-syncs payroll.
         await updateAttendanceApi(editingId, { lop: Number(form.days), lopPardoned: !!form.pardoned });
@@ -203,7 +209,8 @@ function Deductions() {
   const perDay = calc.workingDays > 0 ? calc.monthlySalary / calc.workingDays : 0;
   const lopAmount = Math.round(perDay * (Number(form.days) || 0));
   // Attendance-sourced LOP: only the LOP days can be changed here.
-  const isAttendanceEdit = editingSource === "attendance";
+  const isAttendanceEdit = editingSource === "attendance" && editingEntryType !== 'wfh';
+  const isWfhEdit = editingEntryType === 'wfh';
 
   return (
     <div>
@@ -265,8 +272,16 @@ function Deductions() {
                     </td>
                     <td className="px-4 py-3 text-slate-600 max-w-xs truncate" title={en.reason}>{en.reason || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
-                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${en.absence ? "bg-slate-100 text-slate-600" : en.source === "attendance" ? "bg-sky-100 text-sky-700" : "bg-brand-100 text-brand-700"}`}>
-                        {en.absence ? "Absent" : en.source === "attendance" ? "Attendance" : "Manual"}
+                      <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
+                        en.entryType === 'wfh'
+                          ? 'bg-purple-100 text-purple-700'
+                          : en.absence
+                          ? 'bg-slate-100 text-slate-600'
+                          : en.source === 'attendance'
+                          ? 'bg-sky-100 text-sky-700'
+                          : 'bg-brand-100 text-brand-700'
+                      }`}>
+                        {en.entryType === 'wfh' ? 'WFH' : en.absence ? 'Absent' : en.source === 'attendance' ? 'Attendance' : 'Manual'}
                       </span>
                       {en.pardoned && (
                         <span className="ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Pardoned</span>
@@ -276,10 +291,32 @@ function Deductions() {
                       {en.absence ? (
                         <span className="text-xs text-slate-400">Synced from Attendance</span>
                       ) : (
-                        <>
-                          <button onClick={() => openEdit(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-brand-700 bg-brand-100 hover:bg-brand-200">Edit</button>
-                          <button onClick={() => handleDelete(en)} className="px-2.5 py-1 rounded-lg text-xs font-semibold text-rose-700 bg-rose-100 hover:bg-rose-200">Delete</button>
-                        </>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            onClick={() => openEdit(en)}
+                            title="Edit"
+                            className="p-1.5 rounded-lg text-brand-700 bg-brand-100 hover:bg-brand-200 transition-colors"
+                          >
+                            <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" />
+                              <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" />
+                            </svg>
+                          </button>
+                          {!en.entryType && (
+                            <button
+                              onClick={() => handleDelete(en)}
+                              title="Delete"
+                              className="p-1.5 rounded-lg text-rose-700 bg-rose-100 hover:bg-rose-200 transition-colors"
+                            >
+                              <svg className="h-3.5 w-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6" />
+                                <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6" />
+                                <path d="M10 11v6" /><path d="M14 11v6" />
+                                <path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" />
+                              </svg>
+                            </button>
+                          )}
+                        </div>
                       )}
                     </td>
                   </tr>
@@ -297,8 +334,13 @@ function Deductions() {
       )}
 
       {/* Add / Edit LOP modal */}
-      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={isAttendanceEdit ? "Edit Attendance LOP" : editingId ? "Edit LOP Entry" : "Add LOP"} size="lg">
+      <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={isWfhEdit ? "Edit WFH Deduction" : isAttendanceEdit ? "Edit Attendance LOP" : editingId ? "Edit LOP Entry" : "Add LOP"} size="lg">
         <form onSubmit={handleSave} noValidate>
+          {isWfhEdit && (
+            <div className="mb-4 rounded-xl border border-purple-200 bg-purple-50 px-3.5 py-2.5 text-sm text-purple-800">
+              This is a <span className="font-semibold">Work From Home</span> deduction. You can <span className="font-semibold">pardon</span> it below to waive the 50% penalty — the salary will be recalculated automatically.
+            </div>
+          )}
           {isAttendanceEdit && (
             <div className="mb-4 rounded-xl border border-sky-200 bg-sky-50 px-3.5 py-2.5 text-sm text-sky-800">
               This LOP was marked in <span className="font-semibold">Attendance</span>. You can adjust the <span className="font-semibold">LOP Days</span> here; employee, date and reason stay managed in the Attendance module.
@@ -340,7 +382,7 @@ function Deductions() {
             )}
           </div>
 
-          {/* Pardon LOP — only when editing an existing record */}
+          {/* Pardon — only when editing an existing record */}
           {editingId && (
             <div className="mb-4">
               <label className="flex items-center gap-2.5 cursor-pointer">
@@ -350,10 +392,14 @@ function Deductions() {
                   onChange={(e) => setForm({ ...form, pardoned: e.target.checked })}
                   className="h-4 w-4 accent-brand-600"
                 />
-                <span className="text-sm font-semibold text-slate-700">Pardon LOP</span>
+                <span className="text-sm font-semibold text-slate-700">
+                  {isWfhEdit ? "Pardon WFH Deduction" : "Pardon LOP"}
+                </span>
               </label>
               <p className="text-[11px] text-slate-400 mt-1 ml-6">
-                When pardoned, this LOP is <span className="font-semibold">not deducted</span> from pay (Net Pay increases). The record and its amount are kept for reference. Uncheck to apply the deduction again.
+                {isWfhEdit
+                  ? "When pardoned, the 50% WFH deduction is waived. The employee receives full pay for this day. Uncheck to re-apply the deduction."
+                  : "When pardoned, this LOP is not deducted from pay (Net Pay increases). The record and its amount are kept for reference. Uncheck to apply the deduction again."}
               </p>
             </div>
           )}
@@ -371,7 +417,9 @@ function Deductions() {
           </div>
 
           <div className="flex gap-3 mt-2">
-            <Button type="submit" color="green" loading={saving}>{saving ? "Saving..." : editingId ? "Update LOP" : "Add LOP"}</Button>
+            <Button type="submit" color="green" loading={saving}>
+              {saving ? "Saving..." : isWfhEdit ? "Update WFH Deduction" : editingId ? "Update LOP" : "Add LOP"}
+            </Button>
             <Button color="gray" onClick={() => setModalOpen(false)}>Cancel</Button>
           </div>
         </form>

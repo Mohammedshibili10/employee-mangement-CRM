@@ -41,6 +41,14 @@ export const updateAttendanceApi = async (id, attendanceData) => {
     return res.data;
 };
 
+export const pardonWfhForMonthApi = async (data) => {
+    const token = localStorage.getItem('token');
+    const res = await axios.post('/api/attendance/pardon-wfh-month', data, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+};
+
 export const checkInApi = async (data) => {
     const token = localStorage.getItem('token');
     const res = await axios.post('/api/attendance/checkin', data, {

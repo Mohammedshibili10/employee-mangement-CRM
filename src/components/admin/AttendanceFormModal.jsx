@@ -39,7 +39,7 @@ function WarningIcon({ title }) {
   );
 }
 
-const emptySingle = { employeeId: "", date: todayStr(), status: "present", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "" };
+const emptySingle = { employeeId: "", date: todayStr(), status: "present", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", wfhPardoned: false };
 
 // Short explanation of how each status affects the salary — shown under the picker.
 const STATUS_HINTS = {
@@ -47,6 +47,7 @@ const STATUS_HINTS = {
   late: "Late — counts as a full day, minus a late-arrival deduction based on the check-in time.",
   "half-day": "Half Day — counts as half a day; half a day's pay.",
   leave: "Full Leave — Sick/Casual are paid (within the monthly cap); None = unpaid (counts as LOP).",
+  wfh: "Work From Home — 50% of the day's salary is deducted automatically (unless pardoned).",
 };
 
 function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }) {
@@ -83,6 +84,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         leaveType: editRecord.leaveType || "",
         lopChecked: (editRecord.lop || 0) > 0,
         lop: editRecord.lop ? String(editRecord.lop) : "",
+        wfhPardoned: editRecord.wfhPardoned || false,
       });
     } else {
       // Adding: default to the date-based "all employees" view; rows load below.
@@ -121,9 +123,10 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             leaveType,
             lopChecked: lopNum > 0,
             lop: lopNum > 0 ? String(lopNum) : "",
+            wfhPardoned: ex ? (ex.wfhPardoned || false) : false,
             existingId: ex ? ex._id : null,
             existingStatus: ex ? ex.status : null,
-            orig: { status, checkIn, checkOut, leaveType, lop: lopNum },
+            orig: { status, checkIn, checkOut, leaveType, lop: lopNum, wfhPardoned: ex ? (ex.wfhPardoned || false) : false },
           };
         });
         setBulk(rows);
@@ -157,6 +160,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           leaveType: ex ? ex.leaveType || "" : "",
           lopChecked: ex ? (ex.lop || 0) > 0 : false,
           lop: ex && ex.lop ? String(ex.lop) : "",
+          wfhPardoned: ex ? (ex.wfhPardoned || false) : false,
         }));
       })
       .catch(() => { if (!cancelled) setSingleExistingRecord(null); })
@@ -178,6 +182,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
       leaveType: status === "leave" ? (s.leaveType || "sick") : "",
       lopChecked: status === "leave" ? false : s.lopChecked,
       lop: status === "leave" ? "" : s.lop,
+      wfhPardoned: status === "wfh" ? s.wfhPardoned : false,
     }));
   }
 
@@ -199,6 +204,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             checkOut: combine(single.date, single.checkOut),
             leaveType: "",
             lop: single.lopChecked ? (Number(single.lop) || 0) : 0,
+            wfhPardoned: single.wfhPardoned,
           };
       if (isEdit) {
         await updateAttendanceApi(editRecord._id, payload);
@@ -222,7 +228,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   }
 
   // ---- bulk ----
-  const emptyRow = { status: "", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", existingId: null, existingStatus: null, orig: { status: "", checkIn: "", checkOut: "", leaveType: "", lop: 0 } };
+  const emptyRow = { status: "", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", wfhPardoned: false, existingId: null, existingStatus: null, orig: { status: "", checkIn: "", checkOut: "", leaveType: "", lop: 0, wfhPardoned: false } };
   function rowOf(empId) {
     return bulk[empId] || emptyRow;
   }
@@ -245,6 +251,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           leaveType: status === "leave" ? (cur.leaveType || "sick") : "",
           lopChecked: status === "leave" ? false : cur.lopChecked,
           lop: status === "leave" ? "" : cur.lop,
+          wfhPardoned: status === "wfh" ? cur.wfhPardoned : false,
         },
       };
     });
@@ -259,7 +266,8 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         row.checkIn !== row.orig.checkIn ||
         row.checkOut !== row.orig.checkOut ||
         row.leaveType !== row.orig.leaveType ||
-        (row.lopChecked ? (Number(row.lop) || 0) : 0) !== row.orig.lop
+        (row.lopChecked ? (Number(row.lop) || 0) : 0) !== row.orig.lop ||
+        row.wfhPardoned !== row.orig.wfhPardoned
       );
 
     if (changed.length === 0) {
@@ -280,6 +288,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             checkOut: combine(bulkDate, row.checkOut),
             leaveType: "",
             lop: row.lopChecked ? (Number(row.lop) || 0) : 0,
+            wfhPardoned: row.wfhPardoned,
           };
       try {
         if (row.existingId) { await updateAttendanceApi(row.existingId, payload); updated++; }
@@ -343,6 +352,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                 <option value="late">Late</option>
                 <option value="half-day">Half Day</option>
                 <option value="leave">Full Leave</option>
+                <option value="wfh">Work From Home</option>
               </select>
             </div>
           </div>
@@ -393,7 +403,13 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             )}
           </div>
 
-          <p className="text-xs text-brand-600 mb-3">{STATUS_HINTS[single.status]}</p>
+          {single.status === "wfh" && (
+            <p className="text-xs text-brand-600 mb-3">{STATUS_HINTS[single.status]}</p>
+          )}
+
+          {single.status !== "wfh" && (
+            <p className="text-xs text-brand-600 mb-3">{STATUS_HINTS[single.status]}</p>
+          )}
 
           {singleIsLeave && (
             <p className="text-xs text-slate-500 mb-3">
@@ -489,6 +505,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                           <option value="late">Late</option>
                           <option value="half-day">Half Day</option>
                           <option value="leave">Full Leave</option>
+                          <option value="wfh">WFH</option>
                         </select>
                       </div>
                     );
