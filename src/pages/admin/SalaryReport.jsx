@@ -12,7 +12,7 @@ const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
 const MONEY_KEYS = new Set([
   "monthlySalary", "grossSalary", "basicPay", "hra", "lta", "specialAllowance",
   "actualPay", "lopDeduction", "lateDeduction", "salaryAdvance", "wfhDeduction", "officeExpenses",
-  "assetDeduction", "pfDeduction", "netPay",
+  "assetDeduction", "pfDeduction", "employeeEsi", "netPay",
 ]);
 
 const COLUMNS = [
@@ -40,6 +40,7 @@ const COLUMNS = [
   { key: "officeExpenses", label: "Office Exp.", get: (r) => r.officeExpenses },
   { key: "assetDeduction", label: "Asset Ded.", get: (r) => r.assetDeduction },
   { key: "pfDeduction", label: "PF Ded.", get: (r) => r.pfDeduction },
+  { key: "employeeEsi", label: "Employee ESI", get: (r) => r.employeeEsi || 0 },
   { key: "netPay", label: "Net Pay", get: (r) => r.netPay },
 ];
 

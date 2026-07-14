@@ -118,6 +118,7 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
             label={`LOP Deduction${recordedLopDays > 0 ? ` (${recordedLopDays} day${recordedLopDays === 1 ? "" : "s"})` : ""}`}
             value={money(report.lopDeduction)}
           />
+          <Row label="Employee ESI" value={money(report.employeeEsi)} />
           {DEDUCTIONS.map((d) => (
             <Row key={d.key} label={d.label} value={money(report[d.key])} />
           ))}
