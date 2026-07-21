@@ -57,6 +57,7 @@ function EmployeeDetails() {
 
   function openEdit() {
     setForm({
+      empId: employee.empId || "",
       name: employee.name || "",
       email: employee.email || "",
       phone: employee.phone || "",
@@ -79,6 +80,9 @@ function EmployeeDetails() {
 
     const check = validate(employeeSchema, form);
     const errors = check.valid ? {} : { ...check.errors };
+    if (!form.empId.trim()) {
+      errors.empId = "Employee ID is required";
+    }
     if (form.salary === "" || isNaN(Number(form.salary)) || Number(form.salary) < 0) {
       errors.salary = "Enter a valid salary amount";
     }
@@ -91,6 +95,7 @@ function EmployeeDetails() {
     setSaving(true);
     try {
       const data = await updateEmployeeApi(employee._id, {
+        empId: form.empId.trim(),
         name: form.name,
         email: form.email,
         phoneNumber: form.phone, // backend maps phoneNumber -> phone
@@ -221,6 +226,7 @@ function EmployeeDetails() {
         {form && (
           <form onSubmit={handleSave} noValidate>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-5">
+              <Input label="Employee ID" name="empId" value={form.empId} onChange={handleChange} error={formErrors.empId} placeholder="e.g. RAC043E" />
               <Input label="Full Name" name="name" value={form.name} onChange={handleChange} error={formErrors.name} />
               <Input label="Email" name="email" type="email" value={form.email} onChange={handleChange} error={formErrors.email} />
               <Input label="Phone Number" name="phone" value={form.phone} onChange={handleChange} error={formErrors.phone} />
