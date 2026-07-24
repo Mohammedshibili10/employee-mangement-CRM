@@ -3,6 +3,7 @@ import Modal from "../common/Modal.jsx";
 import Button from "../common/Button.jsx";
 import SearchableSelect from "../common/SearchableSelect.jsx";
 import { markAttendanceApi, updateAttendanceApi, getAttendanceApi } from "../../api/attendanceApi.js";
+import { deriveWorkStatus } from "../../utils/attendanceStatus.js";
 
 // ---- date/time helpers ----
 function toDayStr(d) {
@@ -43,7 +44,7 @@ const emptySingle = { employeeId: "", date: todayStr(), status: "present", check
 
 // Short explanation of how each status affects the salary — shown under the picker.
 const STATUS_HINTS = {
-  present: "Present — counts as a full day; full day's pay.",
+  present: "Present — counts as a full day. A late-arrival deduction still applies if the check-in is after the start time.",
   late: "Late — counts as a full day, minus a late-arrival deduction based on the check-in time.",
   "half-day": "Half Day — counts as half a day; half a day's pay.",
   leave: "Full Leave — Sick/Casual are paid (within the monthly cap); None = unpaid (counts as LOP).",
@@ -371,13 +372,38 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           <div className="grid grid-cols-2 gap-4">
             <div className="mb-2">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Check-in Time</label>
-              <input type="time" value={single.checkIn} disabled={singleIsLeave} onChange={(e) => setSingle({ ...single, checkIn: e.target.value })} className={inputCls} />
+              <input
+                type="time"
+                value={single.checkIn}
+                disabled={singleIsLeave}
+                onChange={(e) => {
+                  const checkIn = e.target.value;
+                  setSingle((s) => {
+                    // Auto-apply the late rule from the employee's assigned start,
+                    // unless this is a Leave/WFH day (those keep their status).
+                    const worked = s.status !== "leave" && s.status !== "wfh";
+                    return {
+                      ...s,
+                      checkIn,
+                      status: worked ? deriveWorkStatus(checkIn, selectedEmp?.workStartTime) : s.status,
+                    };
+                  });
+                }}
+                className={inputCls}
+              />
             </div>
             <div className="mb-2">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Check-out Time</label>
               <input type="time" value={single.checkOut} disabled={singleIsLeave} onChange={(e) => setSingle({ ...single, checkOut: e.target.value })} className={inputCls} />
             </div>
           </div>
+
+          {selectedEmp && !singleIsLeave && (
+            <p className="text-xs text-slate-500 mb-2">
+              Assigned hours: <span className="font-semibold text-slate-600">{selectedEmp.workStartTime || "09:30"} – {selectedEmp.workEndTime || "18:00"}</span>
+              {" · "}status auto-set from check-in vs the start time (you can override it above).
+            </p>
+          )}
 
           <div className="mb-2">
             <label className={`flex items-center gap-2 text-sm font-medium ${singleIsLeave ? "text-slate-400" : "text-slate-700"}`}>
@@ -479,7 +505,29 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                         className={`grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_0.9fr_1fr] gap-2 items-center rounded-lg px-2 py-1.5 ${row.existingId ? "bg-brand-50/50" : "hover:bg-slate-50"}`}
                       >
                         <span className="text-sm text-slate-700 truncate">{emp.name}</span>
-                        <input type="time" value={row.checkIn} disabled={isLeave} onChange={(e) => setRow(emp._id, "checkIn", e.target.value)} className={cellCls} />
+                        <input
+                          type="time"
+                          value={row.checkIn}
+                          disabled={isLeave}
+                          onChange={(e) => {
+                            const checkIn = e.target.value;
+                            setBulk((prev) => {
+                              const cur = prev[emp._id] || emptyRow;
+                              // Auto-apply the late rule from this employee's start,
+                              // leaving Leave/WFH rows untouched.
+                              const worked = cur.status !== "leave" && cur.status !== "wfh";
+                              return {
+                                ...prev,
+                                [emp._id]: {
+                                  ...cur,
+                                  checkIn,
+                                  status: worked ? deriveWorkStatus(checkIn, emp.workStartTime) : cur.status,
+                                },
+                              };
+                            });
+                          }}
+                          className={cellCls}
+                        />
                         <input type="time" value={row.checkOut} disabled={isLeave} onChange={(e) => setRow(emp._id, "checkOut", e.target.value)} className={cellCls} />
                         <select value={row.leaveType} disabled={!isLeave} onChange={(e) => setRow(emp._id, "leaveType", e.target.value)} className={cellCls}>
                           <option value="">None</option>

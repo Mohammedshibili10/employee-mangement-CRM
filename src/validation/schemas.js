@@ -22,6 +22,8 @@ export const employeeSchema = z.object({
   department: z.string().min(1, "Please select a department"),
   designation: z.string().trim().min(1, "Designation is required"),
   joiningDate: z.string().min(1, "Joining date is required"),
+  workStartTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24-hour)"),
+  workEndTime: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM (24-hour)"),
   status: z.enum(["active", "inactive"]),
 });
 

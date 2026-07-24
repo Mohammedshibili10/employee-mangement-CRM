@@ -65,6 +65,8 @@ function EmployeeDetails() {
       designation: employee.designation || "",
       salary: employee.salary ?? "",
       joiningDate: toDateInput(employee.joiningDate),
+      workStartTime: employee.workStartTime || "09:30",
+      workEndTime: employee.workEndTime || "18:00",
       status: employee.status || "active",
     });
     setFormErrors({});
@@ -103,6 +105,8 @@ function EmployeeDetails() {
         designation: form.designation,
         salary: Number(form.salary),
         joiningDate: form.joiningDate,
+        workStartTime: form.workStartTime,
+        workEndTime: form.workEndTime,
         status: form.status,
       });
       // Show the freshly-saved (and populated) record immediately.
@@ -219,6 +223,7 @@ function EmployeeDetails() {
           <Row label="Designation" value={employee.designation} />
           <Row label="Salary" value={salary} />
           <Row label="Joining Date" value={joiningDate} />
+          <Row label="Working Hours" value={`${employee.workStartTime || "09:30"} – ${employee.workEndTime || "18:00"}`} />
         </div>
       </div>
 
@@ -252,6 +257,8 @@ function EmployeeDetails() {
               <Input label="Designation" name="designation" value={form.designation} onChange={handleChange} error={formErrors.designation} />
               <Input label="Salary" name="salary" type="number" value={form.salary} onChange={handleChange} error={formErrors.salary} />
               <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} error={formErrors.joiningDate} />
+              <Input label="Work Start Time" name="workStartTime" type="time" value={form.workStartTime} onChange={handleChange} error={formErrors.workStartTime} />
+              <Input label="Work End Time" name="workEndTime" type="time" value={form.workEndTime} onChange={handleChange} error={formErrors.workEndTime} />
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>

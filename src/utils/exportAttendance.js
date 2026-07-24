@@ -19,14 +19,18 @@ function overtimeLabel(r) {
   return h > 0 ? `${h}h ${m}m` : `${m}m`;
 }
 
-// Punctuality for the export: check-in later than 9:30 AM is "Late",
-// at or before 9:30 AM is "On Time". No check-in (leave/absent) -> blank.
-const LATE_CUTOFF_MINUTES = 9 * 60 + 30; // 9:30 AM
+// Punctuality for the export follows each EMPLOYEE'S own start time: a check-in
+// later than their start is "Late", at or before it is "On Time". No check-in
+// (leave/absent) -> blank. Falls back to 09:30 when no custom start is set.
+function startMinutes(r) {
+  const m = String(r.employee?.workStartTime || "09:30").match(/^(\d{1,2}):(\d{2})$/);
+  return m ? Number(m[1]) * 60 + Number(m[2]) : 9 * 60 + 30;
+}
 function lateStatus(r) {
   if (!r.checkIn) return "-";
   const d = new Date(r.checkIn);
   const minutesOfDay = d.getHours() * 60 + d.getMinutes();
-  return minutesOfDay > LATE_CUTOFF_MINUTES ? "Late" : "On Time";
+  return minutesOfDay > startMinutes(r) ? "Late" : "On Time";
 }
 
 // Columns match the on-screen attendance table (plus Employee ID and the
