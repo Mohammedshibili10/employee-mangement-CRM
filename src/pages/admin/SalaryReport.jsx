@@ -8,6 +8,9 @@ import { getDepartmentsApi } from "../../api/departmentApi.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+// Total calendar days in a month — 31 for July, 30 for June, 28/29 for February
+// depending on the year. Never hardcoded.
+const daysInMonth = (year, month) => (year && month ? new Date(year, month, 0).getDate() : 0);
 
 const MONEY_KEYS = new Set([
   "monthlySalary", "grossSalary", "basicPay", "hra", "lta", "specialAllowance",
@@ -19,7 +22,10 @@ const COLUMNS = [
   { key: "month", label: "Month", get: (r) => `${MONTHS[r.month]} ${r.year}` },
   { key: "empId", label: "Emp ID", get: (r) => r.empId },
   { key: "employeeName", label: "Name", get: (r) => r.employeeName },
-  { key: "monthlyWorkingDays", label: "Working Days", get: (r) => r.monthlyWorkingDays },
+  // Working Days = the selected month's total calendar days, Sundays included
+  // (June 30, July 31, February 28/29). Read from the row's own month/year so it
+  // is always right, including on rows generated before this rule existed.
+  { key: "monthlyWorkingDays", label: "Working Days", get: (r) => daysInMonth(r.year, r.month) },
   { key: "attendanceDays", label: "Attendance", get: (r) => r.attendanceDays },
   { key: "sickLeaveDays", label: "Sick Leave", get: (r) => r.sickLeaveDays || 0 },
   { key: "casualLeaveDays", label: "Casual Leave", get: (r) => r.casualLeaveDays || 0 },

@@ -25,13 +25,15 @@ function formatDate(d) {
 function firstOfMonth(m, y) {
   return `${y}-${String(m).padStart(2, "0")}-01`;
 }
-// Weekday count (Mon–Fri) for a month — the default monthly working days (matches backend).
+// The month's working days: its calendar days minus the Sundays / weekly offs
+// (matches the backend). This is the divisor behind a day's pay, so the LOP
+// amount previewed here is the same one payroll charges.
+const WEEKLY_OFF_WEEKDAYS = [0]; // 0 = Sunday
 function workingDaysInMonth(y, m) {
   const total = new Date(y, m, 0).getDate();
   let count = 0;
   for (let d = 1; d <= total; d++) {
-    const wd = new Date(y, m - 1, d).getDay();
-    if (wd !== 0 && wd !== 6) count++;
+    if (!WEEKLY_OFF_WEEKDAYS.includes(new Date(y, m - 1, d).getDay())) count++;
   }
   return count;
 }
@@ -100,7 +102,10 @@ function Deductions() {
       setEntries(data.entries || []);
       const map = {};
       (salary.reports || []).forEach((r) => {
-        map[r.empId] = { monthlySalary: r.monthlySalary || 0, workingDays: r.monthlyWorkingDays || 30 };
+        map[r.empId] = {
+          monthlySalary: r.monthlySalary || 0,
+          workingDays: r.monthlyWorkingDays || workingDaysInMonth(year, month),
+        };
       });
       setSalaryByEmp(map);
     } catch (err) {

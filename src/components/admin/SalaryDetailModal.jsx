@@ -6,6 +6,8 @@ import { getDeductionsApi } from "../../api/lopApi.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+// Total calendar days in a month — 31 for July, 30 for June, 28/29 for February.
+const daysInMonth = (year, month) => (year && month ? new Date(year, month, 0).getDate() : 0);
 
 const DEDUCTIONS = [
   { key: "lateDeduction", label: "Late Deduction" },
@@ -102,7 +104,8 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
           </div>
 
           <h4 className="font-bold text-slate-800 mt-4 mb-2 text-sm uppercase tracking-wider">Attendance</h4>
-          <Row label="Working Days" value={report.monthlyWorkingDays} strong />
+          {/* Total calendar days in the month, Sundays included. */}
+          <Row label="Working Days" value={daysInMonth(report.year, report.month)} strong />
           <Row label="Attendance Days" value={report.attendanceDays} />
           <Row label="Sick Leave (taken)" value={sick} />
           <Row label="Casual Leave (taken)" value={casual} />
