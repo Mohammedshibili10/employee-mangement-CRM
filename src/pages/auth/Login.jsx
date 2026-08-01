@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Input from "../../components/common/Input.jsx";
 import Button from "../../components/common/Button.jsx";
 import Logo from "../../components/common/Logo.jsx";
@@ -11,6 +11,8 @@ import { loginSchema, validate } from "../../validation/schemas.js";
 function Login() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
+  // Set when an expired token signed the user out, so the redirect is explained.
+  const sessionEnded = useSelector((state) => state.auth.sessionEnded);
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState({});
   const [input, setInput] = useState({
@@ -112,6 +114,15 @@ function Login() {
           <div className="bg-white rounded-2xl border border-slate-200/70 shadow-card p-8">
             <h1 className="text-2xl font-extrabold text-slate-800 tracking-tight">Welcome back</h1>
             <p className="text-sm text-slate-500 mt-1 mb-6">Sign in to continue to your account.</p>
+
+            {sessionEnded && (
+              <div className="mb-5 flex items-start gap-2.5 rounded-xl border border-amber-200 bg-amber-50 px-3.5 py-3 text-amber-800">
+                <svg className="h-4 w-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+                </svg>
+                <p className="text-sm font-medium">Your session has expired. Please sign in again.</p>
+              </div>
+            )}
 
             <form onSubmit={handleLogin} noValidate>
               <Input

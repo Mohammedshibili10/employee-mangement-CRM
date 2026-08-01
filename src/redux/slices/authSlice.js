@@ -24,6 +24,8 @@ const initialState = {
     profilePhoto: null,
     loading: false,
     error: null,
+    // True only when the user was signed out because their token expired.
+    sessionEnded: false,
 };
 
 const authSlice = createSlice({
@@ -34,6 +36,7 @@ const authSlice = createSlice({
         loginStart: (state) => {
             state.loading = true;
             state.error = null;
+            state.sessionEnded = false;
         },
 
         loginSuccess: (state, action) => {
@@ -67,6 +70,24 @@ const authSlice = createSlice({
             state.token = null;
             state.profilePhoto = null;
             state.error = null;
+            state.sessionEnded = false;
+
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+        },
+
+        // The token expired or was rejected by the server. Same clean-up as a
+        // logout, but keeps a message so the login page can explain why the user
+        // was sent back instead of just appearing to drop them.
+        sessionExpired: (state) => {
+            state.user = null;
+            state.token = null;
+            state.profilePhoto = null;
+            state.loading = false;
+            state.error = null;
+            // Distinguishes "your session ran out" from "wrong password", so the
+            // login page can explain the redirect without hijacking form errors.
+            state.sessionEnded = true;
 
             localStorage.removeItem('token');
             localStorage.removeItem('user');
@@ -74,5 +95,5 @@ const authSlice = createSlice({
     },
 });
 
-export const { loginStart, loginSuccess, loginFailure, setProfilePhoto, updateUser, logout } = authSlice.actions;
+export const { loginStart, loginSuccess, loginFailure, setProfilePhoto, updateUser, logout, sessionExpired } = authSlice.actions;
 export default authSlice.reducer;
