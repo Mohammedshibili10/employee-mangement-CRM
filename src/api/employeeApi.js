@@ -1,8 +1,18 @@
 import axios from 'axios';
 
-export const getEmployeesApi = async () => {
+// Returns the employees who belong in the period being viewed.
+//   (no options)          -> active employees only
+//   { month, year }       -> everyone employed at any point that month, so
+//                            someone who left on 15 July still shows in July
+//                            and disappears from August onwards
+//   { includeInactive }   -> everyone (the Employees page, to reactivate)
+export const getEmployeesApi = async ({ includeInactive = false, month, year } = {}) => {
     const token = localStorage.getItem('token');
-    const res = await axios.get('/api/employees', {
+    const params = new URLSearchParams();
+    if (includeInactive) params.set('includeInactive', 'true');
+    if (month && year) { params.set('month', month); params.set('year', year); }
+    const qs = params.toString();
+    const res = await axios.get(`/api/employees${qs ? `?${qs}` : ''}`, {
         headers: { Authorization: `Bearer ${token}` },
     });
     return res.data;

@@ -37,13 +37,15 @@ function Attendance() {
   const [formOpen, setFormOpen] = useState(false);
   const [editRecord, setEditRecord] = useState(null);
 
-  useEffect(() => {
-    loadEmployees();
-  }, []);
+  // The month currently being viewed ("YYYY-MM"), whichever report mode is on.
+  const periodMonth = mode === "daily" ? day.slice(0, 7) : month;
 
-  // Refetch whenever the report mode or the selected month/day changes.
+  // Refetch whenever the report mode or the selected month/day changes. The
+  // employee list is period-aware too: someone who left mid-month still belongs
+  // in that month's attendance, and only disappears from the month after.
   useEffect(() => {
     fetchData();
+    loadEmployees(periodMonth);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mode, month, day]);
 
@@ -68,9 +70,12 @@ function Attendance() {
     }
   }
 
-  async function loadEmployees() {
+  async function loadEmployees(periodStr) {
     try {
-      const data = await getEmployeesApi();
+      const [y, m] = String(periodStr || "").split("-");
+      const data = await getEmployeesApi(
+        y && m ? { year: Number(y), month: Number(m) } : {}
+      );
       setEmployees(data.employees || []);
     } catch (err) {
       console.error("Failed to load employees:", err);

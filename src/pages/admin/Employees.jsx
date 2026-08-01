@@ -35,7 +35,9 @@ function Employees() {
   const [error, setError] = useState(null);
 
   const [search, setSearch] = useState("");
-  const [filter, setFilter] = useState("All");
+  // Default to Active so inactive employees are out of the way here too; switch
+  // the Status filter to Inactive (or All) to find and reactivate someone.
+  const [filter, setFilter] = useState("Active");
 
   const [addOpen, setAddOpen] = useState(false);
   const [form, setForm] = useState(emptyForm);
@@ -64,7 +66,10 @@ function Employees() {
     try {
       setLoading(true);
       setError(null);
-      const data = await getEmployeesApi();
+      // This is the one place inactive employees stay visible — the Status
+      // filter below is how they are found and reactivated. Everywhere else in
+      // the app they are hidden.
+      const data = await getEmployeesApi({ includeInactive: true });
       setEmployees(data.employees);
     } catch (err) {
       console.error("Failed to fetch employees:", err);
