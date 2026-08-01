@@ -1,11 +1,45 @@
+import { useState, useMemo } from "react";
 import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
 
 function EmployeeTable({ employees, onView, onDelete }) {
+  // null = the order the list arrived in; clicking the header starts at
+  // ascending, then toggles between ascending and descending.
+  const [sortDir, setSortDir] = useState(null);
+
+  const toggleSort = () => setSortDir((dir) => (dir === "asc" ? "desc" : "asc"));
+
+  const rows = useMemo(() => {
+    if (!sortDir) return employees;
+    // `numeric` so RAC2E sorts before RAC10E — a plain string compare would put
+    // RAC10E first as soon as the IDs stop being zero-padded to the same width.
+    const byEmpId = (a, b) =>
+      String(a.empId || "").localeCompare(String(b.empId || ""), undefined, {
+        numeric: true,
+        sensitivity: "base",
+      });
+    const sorted = [...employees].sort(byEmpId);
+    return sortDir === "desc" ? sorted.reverse() : sorted;
+  }, [employees, sortDir]);
+
+  const empIdHeader = (
+    <button
+      type="button"
+      onClick={toggleSort}
+      title={`Sort by Employee ID (${sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "click to sort"})`}
+      aria-sort={sortDir === "asc" ? "ascending" : sortDir === "desc" ? "descending" : "none"}
+      className="inline-flex items-center gap-1 uppercase tracking-wider select-none hover:text-slate-700 transition-colors"
+    >
+      Emp ID
+      <span className={`text-[9px] leading-none ${sortDir ? "text-brand-600" : "text-slate-300"}`}>
+        {sortDir === "desc" ? "▼" : "▲"}
+      </span>
+    </button>
+  );
 
   return (
-    <Table headers={["Emp ID", "Name", "Email", "Department", "Designation", "Status", "Actions"]}>
-      {employees.map((emp) => (
+    <Table headers={[empIdHeader, "Name", "Email", "Department", "Designation", "Status", "Actions"]}>
+      {rows.map((emp) => (
         <tr key={emp._id} className="hover:bg-brand-50/40 transition-colors">
           <td className="px-4 py-3">
             <span className="px-2 py-1 rounded-md bg-slate-100 text-slate-600 text-xs font-medium">

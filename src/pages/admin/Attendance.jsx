@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import AttendanceTable from "../../components/admin/AttendanceTable.jsx";
+import MonthlyAttendanceGrid from "../../components/admin/MonthlyAttendanceGrid.jsx";
 import AttendanceFormModal from "../../components/admin/AttendanceFormModal.jsx";
 import Button from "../../components/common/Button.jsx";
 import { SkeletonTable } from "../../components/common/Skeleton.jsx";
@@ -189,35 +190,40 @@ function Attendance() {
         ))}
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => setStatusFilter(e.target.value)}
-          className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
-        >
-          <option value="All">All Records</option>
-          <option value="present">Present</option>
-          <option value="late">Late</option>
-          <option value="absent">Absent</option>
-          <option value="half-day">Half-day</option>
-          <option value="leave">Leave</option>
-          <option value="wfh">WFH</option>
-        </select>
+      {/* The status filter and export apply to the Daily report's record list;
+          the Monthly report is a grid of the whole month instead. */}
+      {mode === "daily" && (
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
+          <select
+            value={statusFilter}
+            onChange={(e) => setStatusFilter(e.target.value)}
+            className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
+          >
+            <option value="All">All Records</option>
+            <option value="present">Present</option>
+            <option value="late">Late</option>
+            <option value="absent">Absent</option>
+            <option value="half-day">Half-day</option>
+            <option value="leave">Leave</option>
+            <option value="wfh">WFH</option>
+          </select>
 
-        {/* Export is available for the Daily report. */}
-        {mode === "daily" && (
           <div className="flex items-center gap-2 sm:ml-auto">
             <span className="text-sm font-medium text-slate-500">Export:</span>
             <Button color="green" onClick={() => handleExport("excel")}>Excel</Button>
             <Button color="gray" onClick={() => handleExport("pdf")}>PDF</Button>
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       {loading && <SkeletonTable rows={6} cols={8} />}
       {error && <p className="text-center text-rose-500 mt-6">{error}</p>}
 
-      {!loading && !error && (
+      {!loading && !error && mode === "monthly" && (
+        <MonthlyAttendanceGrid employees={employees} records={records} month={month} />
+      )}
+
+      {!loading && !error && mode === "daily" && (
         <>
           <AttendanceTable records={filtered} onEdit={openEdit} />
           {filtered.length === 0 && (
