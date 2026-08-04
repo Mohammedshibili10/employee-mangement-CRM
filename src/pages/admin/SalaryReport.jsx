@@ -73,9 +73,15 @@ function SalaryReport() {
   const [selected, setSelected] = useState(null);
 
   useEffect(() => {
-    getEmployeesApi().then((d) => setEmployees(d.employees || [])).catch(() => {});
     getDepartmentsApi().then((d) => setDepartments(d.departments || [])).catch(() => {});
   }, []);
+
+  // The employee filter follows the selected period, so someone who left during
+  // that month can still be picked out of it — they only drop off the list from
+  // the month after they left.
+  useEffect(() => {
+    getEmployeesApi({ month, year }).then((d) => setEmployees(d.employees || [])).catch(() => {});
+  }, [month, year]);
 
   useEffect(() => {
     fetchReports();

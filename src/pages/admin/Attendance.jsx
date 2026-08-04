@@ -124,6 +124,8 @@ function Attendance() {
   const cards = [
     { label: "Present", value: summary.present, color: "text-brand-600" },
     { label: "Late", value: summary.late, color: "text-amber-600" },
+    // Violet matches the half-day cell in the Monthly Attendance Grid.
+    { label: "Half Day", value: summary["half-day"], color: "text-violet-600" },
     { label: "Absent", value: summary.absent, color: "text-rose-600" },
     { label: "Leave", value: summary.leave, color: "text-sky-600" },
     { label: "WFH", value: summary.wfh, color: "text-purple-600" },
@@ -183,7 +185,7 @@ function Attendance() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
         {cards.map((c) => (
           <div
             key={c.label}
