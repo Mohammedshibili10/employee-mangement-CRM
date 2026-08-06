@@ -181,8 +181,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
       ...s,
       status,
       leaveType: status === "leave" ? (s.leaveType || "sick") : "",
-      lopChecked: status === "leave" ? false : s.lopChecked,
-      lop: status === "leave" ? "" : s.lop,
+      // LOP is kept whatever the status — a leave day can be marked as loss of pay.
       wfhPardoned: status === "wfh" ? s.wfhPardoned : false,
     }));
   }
@@ -196,7 +195,14 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
     setSaving(true);
     try {
       const payload = singleIsLeave
-        ? { employee: single.employeeId, date: single.date, status: "leave", leaveType: single.leaveType }
+        ? {
+            employee: single.employeeId,
+            date: single.date,
+            status: "leave",
+            leaveType: single.leaveType,
+            // A leave day can still carry LOP.
+            lop: single.lopChecked ? (Number(single.lop) || 0) : 0,
+          }
         : {
             employee: single.employeeId,
             date: single.date,
@@ -239,8 +245,9 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
       return { ...prev, [empId]: { ...cur, [field]: value } };
     });
   }
-  // Picking a status keeps the row consistent (Full Leave clears check-in/out & LOP
-  // and defaults the leave type; a work status clears the leave type).
+  // Picking a status keeps the row consistent (Full Leave clears check-in/out and
+  // defaults the leave type; a work status clears the leave type). LOP is left
+  // alone either way — a leave day can be marked as loss of pay.
   function setRowStatus(empId, status) {
     setBulk((prev) => {
       const cur = prev[empId] || emptyRow;
@@ -250,8 +257,6 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           ...cur,
           status,
           leaveType: status === "leave" ? (cur.leaveType || "sick") : "",
-          lopChecked: status === "leave" ? false : cur.lopChecked,
-          lop: status === "leave" ? "" : cur.lop,
           wfhPardoned: status === "wfh" ? cur.wfhPardoned : false,
         },
       };
@@ -280,7 +285,14 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
     let created = 0, updated = 0, skipped = 0;
     for (const { emp, row } of changed) {
       const payload = row.status === "leave"
-        ? { employee: emp._id, date: bulkDate, status: "leave", leaveType: row.leaveType }
+        ? {
+            employee: emp._id,
+            date: bulkDate,
+            status: "leave",
+            leaveType: row.leaveType,
+            // A leave day can still carry LOP.
+            lop: row.lopChecked ? (Number(row.lop) || 0) : 0,
+          }
         : {
             employee: emp._id,
             date: bulkDate,
@@ -406,17 +418,17 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           )}
 
           <div className="mb-2">
-            <label className={`flex items-center gap-2 text-sm font-medium ${singleIsLeave ? "text-slate-400" : "text-slate-700"}`}>
+            {/* Available on every status, leave included. */}
+            <label className="flex items-center gap-2 text-sm font-medium text-slate-700">
               <input
                 type="checkbox"
                 checked={single.lopChecked}
-                disabled={singleIsLeave}
                 onChange={(e) => setSingle({ ...single, lopChecked: e.target.checked, lop: e.target.checked ? single.lop : "" })}
                 className="h-4 w-4 accent-brand-600"
               />
               Loss of Pay (LOP)
             </label>
-            {single.lopChecked && !singleIsLeave && (
+            {single.lopChecked && (
               <input
                 type="number"
                 min="0"
@@ -535,15 +547,15 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                           <option value="casual">Casual</option>
                         </select>
                         <div className="flex items-center gap-1.5">
+                          {/* Available on every status, leave included. */}
                           <input
                             type="checkbox"
                             checked={row.lopChecked}
-                            disabled={isLeave}
                             onChange={(e) => setRow(emp._id, "lopChecked", e.target.checked)}
                             className="h-4 w-4 accent-brand-600 shrink-0"
                             title="Loss of Pay"
                           />
-                          {row.lopChecked && !isLeave && (
+                          {row.lopChecked && (
                             <input type="number" min="0" step="0.5" value={row.lop} placeholder="0" onChange={(e) => setRow(emp._id, "lop", e.target.value)} className="w-16 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20" />
                           )}
                         </div>
