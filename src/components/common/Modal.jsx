@@ -7,6 +7,10 @@ function Modal({ isOpen, onClose, title, children, size = "md" }) {
     md: "max-w-md",
     lg: "max-w-lg",
     xl: "max-w-3xl",
+    // Wide enough for the bulk attendance grid, which needs ~900px before it
+    // starts scrolling sideways.
+    "2xl": "max-w-5xl",
+    "3xl": "max-w-7xl",
   };
 
   // Render into document.body via a portal so the fixed overlay is always

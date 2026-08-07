@@ -11,7 +11,7 @@ function formatDate(v) {
   return v ? new Date(v).toLocaleDateString() : "-";
 }
 function formatTime(v) {
-  return v ? new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
+  return v ? new Date(v).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
 }
 
 function downloadCsv(filename, columns, rows) {

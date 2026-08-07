@@ -20,7 +20,7 @@ function formatDate(value) {
 }
 
 function formatTime(value) {
-  return value ? new Date(value).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
+  return value ? new Date(value).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
 }
 
 function formatOvertime(row) {

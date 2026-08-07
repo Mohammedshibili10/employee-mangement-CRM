@@ -68,6 +68,7 @@ function EmployeeDetails() {
       workStartTime: employee.workStartTime || "09:30",
       workEndTime: employee.workEndTime || "18:00",
       status: employee.status || "active",
+      employmentStatus: employee.employmentStatus || "probation",
     });
     setFormErrors({});
     setEditOpen(true);
@@ -108,6 +109,7 @@ function EmployeeDetails() {
         workStartTime: form.workStartTime,
         workEndTime: form.workEndTime,
         status: form.status,
+        employmentStatus: form.employmentStatus,
       });
       // Show the freshly-saved (and populated) record immediately.
       setEmployee(data.employee);
@@ -259,6 +261,23 @@ function EmployeeDetails() {
               <Input label="Joining Date" name="joiningDate" type="date" value={form.joiningDate} onChange={handleChange} error={formErrors.joiningDate} />
               <Input label="Work Start Time" name="workStartTime" type="time" value={form.workStartTime} onChange={handleChange} error={formErrors.workStartTime} />
               <Input label="Work End Time" name="workEndTime" type="time" value={form.workEndTime} onChange={handleChange} error={formErrors.workEndTime} />
+
+              <div className="mb-4">
+                <label className="block text-sm font-medium text-slate-700 mb-1">Employment Status</label>
+                <select
+                  name="employmentStatus"
+                  value={form.employmentStatus}
+                  onChange={handleChange}
+                  className="w-full border border-slate-300 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
+                >
+                  <option value="probation">Probation</option>
+                  <option value="permanent">Permanent</option>
+                </select>
+                <p className="text-xs text-slate-500 mt-1">
+                  Probation runs 3 months. While on probation there is no paid-leave
+                  allowance — every leave day is loss of pay.
+                </p>
+              </div>
 
               <div className="mb-4">
                 <label className="block text-sm font-medium text-slate-700 mb-1">Status</label>

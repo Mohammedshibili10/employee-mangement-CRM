@@ -40,7 +40,7 @@ function WarningIcon({ title }) {
   );
 }
 
-const emptySingle = { employeeId: "", date: todayStr(), status: "present", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", wfhPardoned: false };
+const emptySingle = { employeeId: "", date: todayStr(), status: "present", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", lopReason: "", wfhPardoned: false };
 
 // Short explanation of how each status affects the salary — shown under the picker.
 const STATUS_HINTS = {
@@ -85,6 +85,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         leaveType: editRecord.leaveType || "",
         lopChecked: (editRecord.lop || 0) > 0,
         lop: editRecord.lop ? String(editRecord.lop) : "",
+        lopReason: editRecord.lopReason || "",
         wfhPardoned: editRecord.wfhPardoned || false,
       });
     } else {
@@ -124,10 +125,11 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             leaveType,
             lopChecked: lopNum > 0,
             lop: lopNum > 0 ? String(lopNum) : "",
+            lopReason: ex ? (ex.lopReason || "") : "",
             wfhPardoned: ex ? (ex.wfhPardoned || false) : false,
             existingId: ex ? ex._id : null,
             existingStatus: ex ? ex.status : null,
-            orig: { status, checkIn, checkOut, leaveType, lop: lopNum, wfhPardoned: ex ? (ex.wfhPardoned || false) : false },
+            orig: { status, checkIn, checkOut, leaveType, lop: lopNum, lopReason: ex ? (ex.lopReason || "") : "", wfhPardoned: ex ? (ex.wfhPardoned || false) : false },
           };
         });
         setBulk(rows);
@@ -161,6 +163,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
           leaveType: ex ? ex.leaveType || "" : "",
           lopChecked: ex ? (ex.lop || 0) > 0 : false,
           lop: ex && ex.lop ? String(ex.lop) : "",
+          lopReason: ex ? (ex.lopReason || "") : "",
           wfhPardoned: ex ? (ex.wfhPardoned || false) : false,
         }));
       })
@@ -202,6 +205,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             leaveType: single.leaveType,
             // A leave day can still carry LOP.
             lop: single.lopChecked ? (Number(single.lop) || 0) : 0,
+            lopReason: single.lopChecked ? single.lopReason : "",
           }
         : {
             employee: single.employeeId,
@@ -235,7 +239,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   }
 
   // ---- bulk ----
-  const emptyRow = { status: "", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", wfhPardoned: false, existingId: null, existingStatus: null, orig: { status: "", checkIn: "", checkOut: "", leaveType: "", lop: 0, wfhPardoned: false } };
+  const emptyRow = { status: "", checkIn: "", checkOut: "", leaveType: "", lopChecked: false, lop: "", lopReason: "", wfhPardoned: false, existingId: null, existingStatus: null, orig: { status: "", checkIn: "", checkOut: "", leaveType: "", lop: 0, lopReason: "", wfhPardoned: false } };
   function rowOf(empId) {
     return bulk[empId] || emptyRow;
   }
@@ -273,6 +277,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
         row.checkOut !== row.orig.checkOut ||
         row.leaveType !== row.orig.leaveType ||
         (row.lopChecked ? (Number(row.lop) || 0) : 0) !== row.orig.lop ||
+        (row.lopChecked ? (row.lopReason || "") : "") !== (row.orig.lopReason || "") ||
         row.wfhPardoned !== row.orig.wfhPardoned
       );
 
@@ -292,6 +297,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             leaveType: row.leaveType,
             // A leave day can still carry LOP.
             lop: row.lopChecked ? (Number(row.lop) || 0) : 0,
+            lopReason: row.lopChecked ? row.lopReason : "",
           }
         : {
             employee: emp._id,
@@ -320,7 +326,9 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   const title = isEdit ? "Edit Attendance" : "Add Attendance";
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={title} size={mode === "bulk" && !isEdit ? "xl" : "lg"}>
+    // Bulk needs the full grid width; single is roomy enough for its two-column
+    // rows without becoming a wall of empty space.
+    <Modal isOpen={isOpen} onClose={onClose} title={title} size={mode === "bulk" && !isEdit ? "3xl" : "xl"}>
       {!isEdit && (
         <div className="flex gap-2 mb-5">
           {[{ key: "single", label: "Single Attendance" }, { key: "bulk", label: "Bulk Attendance" }].map((t) => (
@@ -428,16 +436,26 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
               />
               Loss of Pay (LOP)
             </label>
+            {/* Amount and reason appear together, only once LOP is ticked. */}
             {single.lopChecked && (
-              <input
-                type="number"
-                min="0"
-                step="0.5"
-                value={single.lop}
-                onChange={(e) => setSingle({ ...single, lop: e.target.value })}
-                placeholder="How much LOP (days)"
-                className={`${inputCls} mt-2`}
-              />
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                <input
+                  type="number"
+                  min="0"
+                  step="0.5"
+                  value={single.lop}
+                  onChange={(e) => setSingle({ ...single, lop: e.target.value })}
+                  placeholder="How much LOP (days)"
+                  className={inputCls}
+                />
+                <input
+                  type="text"
+                  value={single.lopReason}
+                  onChange={(e) => setSingle({ ...single, lopReason: e.target.value })}
+                  placeholder="Reason for LOP"
+                  className={inputCls}
+                />
+              </div>
             )}
           </div>
 
@@ -502,8 +520,8 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             <p className="text-center text-sm text-slate-500 py-8">Loading attendance for this date…</p>
           ) : (
             <div className="overflow-x-auto scrollbar-slim">
-              <div className="min-w-[760px]">
-                <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_0.9fr_1fr] gap-2 px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
+              <div className="min-w-[900px]">
+                <div className="grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_1.6fr_1fr] gap-2 px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">
                   <span>Employee</span><span>Check-in</span><span>Check-out</span><span>Leave Type</span><span>LOP</span><span>Status</span>
                 </div>
 
@@ -514,7 +532,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                     return (
                       <div
                         key={emp._id}
-                        className={`grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_0.9fr_1fr] gap-2 items-center rounded-lg px-2 py-1.5 ${row.existingId ? "bg-brand-50/50" : "hover:bg-slate-50"}`}
+                        className={`grid grid-cols-[1.4fr_0.9fr_0.9fr_0.9fr_1.6fr_1fr] gap-2 items-center rounded-lg px-2 py-1.5 ${row.existingId ? "bg-brand-50/50" : "hover:bg-slate-50"}`}
                       >
                         <span className="text-sm text-slate-700 truncate">{emp.name}</span>
                         <input
@@ -556,7 +574,10 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                             title="Loss of Pay"
                           />
                           {row.lopChecked && (
-                            <input type="number" min="0" step="0.5" value={row.lop} placeholder="0" onChange={(e) => setRow(emp._id, "lop", e.target.value)} className="w-16 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20" />
+                            <>
+                              <input type="number" min="0" step="0.5" value={row.lop} placeholder="0" onChange={(e) => setRow(emp._id, "lop", e.target.value)} className="w-14 shrink-0 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20" />
+                              <input type="text" value={row.lopReason} placeholder="Reason" title="Reason for LOP" onChange={(e) => setRow(emp._id, "lopReason", e.target.value)} className="min-w-0 flex-1 rounded-lg border border-slate-200 bg-white px-2 py-1.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-2 focus:ring-brand-500/20" />
+                            </>
                           )}
                         </div>
                         <select value={row.status} onChange={(e) => setRowStatus(emp._id, e.target.value)} className={cellCls}>

@@ -6,7 +6,7 @@ function fmtDate(v) {
   return v ? new Date(v).toLocaleDateString() : "-";
 }
 function fmtTime(v) {
-  return v ? new Date(v).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "-";
+  return v ? new Date(v).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
 }
 function statusLabel(r) {
   if (r.status === "leave" && r.leaveType) return `${r.leaveType} leave`;

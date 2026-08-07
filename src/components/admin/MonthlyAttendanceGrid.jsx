@@ -7,11 +7,15 @@ const WEEKLY_OFF_WEEKDAYS = [0];
 const isWeeklyOff = (y, m, d) => WEEKLY_OFF_WEEKDAYS.includes(new Date(y, m - 1, d).getDay());
 
 // One place for every cell's letter and colours.
+const ABSENT_CELL = { code: "A", cls: "bg-rose-50 border-rose-200 text-rose-600" };
+
 const CELL = {
   present: { code: "P", cls: "bg-emerald-50 border-emerald-200 text-emerald-700" },
   late: { code: "L", cls: "bg-amber-50 border-amber-200 text-amber-700" },
-  absent: { code: "A", cls: "bg-rose-50 border-rose-200 text-rose-600" },
-  leave: { code: "LV", cls: "bg-sky-50 border-sky-200 text-sky-700" },
+  absent: ABSENT_CELL,
+  // A leave day reads as Absent in the grid — the table only distinguishes days
+  // worked from days not worked. The exact status is still on the cell tooltip.
+  leave: ABSENT_CELL,
   "half-day": { code: "HD", cls: "bg-violet-50 border-violet-200 text-violet-700" },
   wfh: { code: "W", cls: "bg-purple-50 border-purple-200 text-purple-700" },
   off: { code: "WO", cls: "bg-slate-100 border-slate-200 text-slate-400" },
@@ -22,7 +26,6 @@ const LEGEND = [
   ["Present", "border-emerald-300 bg-emerald-50"],
   ["Absent", "border-rose-300 bg-rose-50"],
   ["Late", "border-amber-300 bg-amber-50"],
-  ["Leave", "border-sky-300 bg-sky-50"],
   ["Half day", "border-violet-300 bg-violet-50"],
   ["WFH", "border-purple-300 bg-purple-50"],
   ["Weekly off", "border-slate-300 bg-slate-100"],

@@ -27,9 +27,9 @@ const COLUMNS = [
   // is always right, including on rows generated before this rule existed.
   { key: "monthlyWorkingDays", label: "Working Days", get: (r) => daysInMonth(r.year, r.month) },
   { key: "attendanceDays", label: "Attendance", get: (r) => r.attendanceDays },
-  { key: "sickLeaveDays", label: "Sick Leave", get: (r) => r.sickLeaveDays || 0 },
-  { key: "casualLeaveDays", label: "Casual Leave", get: (r) => r.casualLeaveDays || 0 },
-  { key: "totalPaidLeave", label: "Paid Leave", get: (r) => Math.min(r.sickLeaveDays || 0, 1) + Math.min(r.casualLeaveDays || 0, 1) },
+  // Leave = the PAID leave days granted this month (1 CL + 1 SL, so 0-2). Any
+  // leave beyond the allowance is unpaid and shows in the LOP column instead.
+  { key: "paidLeaveDays", label: "Leave", get: (r) => r.paidLeaveDays || 0 },
   // LOP = total loss-of-pay days: unpaid absences (r.lop) + recorded LOP (r.lopDays).
   { key: "lop", label: "LOP", get: (r) => (r.lop || 0) + (r.lopDays || 0) },
   { key: "monthlySalary", label: "Monthly Salary", get: (r) => r.monthlySalary },

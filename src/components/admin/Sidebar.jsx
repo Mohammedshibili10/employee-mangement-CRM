@@ -16,6 +16,7 @@ const menu = [
     icon: "lop",
     children: [
       { name: "Deductions", path: "/admin/salary-adjustments/deductions" },
+      { name: "Salary Advance", path: "/admin/salary-adjustments/salary-advance" },
       { name: "Additions", path: "/admin/salary-adjustments/additions" },
     ],
   },

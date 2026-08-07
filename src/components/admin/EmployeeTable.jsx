@@ -46,7 +46,18 @@ function EmployeeTable({ employees, onView, onDelete }) {
               {emp.empId}
             </span>
           </td>
-          <td className="px-4 py-3 font-semibold text-slate-800">{emp.name}</td>
+          <td className="px-4 py-3 font-semibold text-slate-800">
+            {emp.name}
+            {/* Probation employees are flagged (P); permanent ones carry no label. */}
+            {emp.employmentStatus === "probation" && (
+              <span
+                title="On probation — no paid-leave allowance"
+                className="ml-1.5 text-xs font-bold text-amber-600"
+              >
+                (P)
+              </span>
+            )}
+          </td>
           <td className="px-4 py-3 text-slate-600">{emp.email}</td>
 
           <td className="px-4 py-3 text-slate-600">{emp.department?.name || "-"}</td>
