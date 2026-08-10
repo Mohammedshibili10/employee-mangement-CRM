@@ -17,6 +17,7 @@ const menu = [
     children: [
       { name: "Deductions", path: "/admin/salary-adjustments/deductions" },
       { name: "Salary Advance", path: "/admin/salary-adjustments/salary-advance" },
+      { name: "Late Minutes", path: "/admin/salary-adjustments/late-minutes" },
       { name: "Additions", path: "/admin/salary-adjustments/additions" },
     ],
   },

@@ -17,6 +17,7 @@ import SalaryReport from "../pages/admin/SalaryReport.jsx";
 import Lop from "../pages/admin/Lop.jsx";
 import Additions from "../pages/admin/Additions.jsx";
 import SalaryAdvance from "../pages/admin/SalaryAdvance.jsx";
+import LateMinutes from "../pages/admin/LateMinutes.jsx";
 import Reports from "../pages/admin/Reports.jsx";
 import AdminSettings from "../pages/admin/Settings.jsx";
 
@@ -56,6 +57,7 @@ function AppRoutes() {
           <Route path="salary-adjustments" element={<Navigate to="/admin/salary-adjustments/deductions" replace />} />
           <Route path="salary-adjustments/deductions" element={<Lop />} />
           <Route path="salary-adjustments/salary-advance" element={<SalaryAdvance />} />
+          <Route path="salary-adjustments/late-minutes" element={<LateMinutes />} />
           <Route path="salary-adjustments/additions" element={<Additions />} />
           <Route path="lop" element={<Navigate to="/admin/salary-adjustments/deductions" replace />} />
           <Route path="reports" element={<Reports />} />

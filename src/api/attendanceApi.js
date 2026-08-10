@@ -41,6 +41,16 @@ export const updateAttendanceApi = async (id, attendanceData) => {
     return res.data;
 };
 
+// Waive (or re-apply) the late-arrival deduction on one attendance record.
+// The backend stamps who approved it and when, then recalculates the salary.
+export const pardonLateApi = async (id, pardoned = true) => {
+    const token = localStorage.getItem('token');
+    const res = await axios.put(`/api/attendance/${id}/pardon-late`, { pardoned }, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return res.data;
+};
+
 export const pardonWfhForMonthApi = async (data) => {
     const token = localStorage.getItem('token');
     const res = await axios.post('/api/attendance/pardon-wfh-month', data, {

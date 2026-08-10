@@ -8,12 +8,21 @@ import { getDepartmentsApi } from "../../api/departmentApi.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const money = (n) => `₹${Number(n || 0).toLocaleString("en-IN")}`;
+// Same 2-decimal rounding the payroll uses, so a derived column matches the
+// figure the backend stores rather than drifting by a paisa.
+const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 // Total calendar days in a month — 31 for July, 30 for June, 28/29 for February
 // depending on the year. Never hardcoded.
 const daysInMonth = (year, month) => (year && month ? new Date(year, month, 0).getDate() : 0);
+// A day's pay for a row: monthly salary ÷ the month's calendar days. Falls back
+// to the month length so a row saved before working days were stored still works.
+const perDayOf = (r) => {
+  const wd = r.monthlyWorkingDays || daysInMonth(r.year, r.month);
+  return wd > 0 ? (r.monthlySalary || 0) / wd : 0;
+};
 
 const MONEY_KEYS = new Set([
-  "monthlySalary", "grossSalary", "basicPay", "hra", "lta", "specialAllowance",
+  "monthlySalary", "actualBasicPay", "grossSalary", "basicPay", "hra", "lta", "specialAllowance", "lopAmount",
   "actualPay", "lopDeduction", "lateDeduction", "salaryAdvance", "wfhDeduction", "officeExpenses",
   "assetDeduction", "pfDeduction", "employeeEsi", "netPay",
 ]);
@@ -32,7 +41,19 @@ const COLUMNS = [
   { key: "paidLeaveDays", label: "Leave", get: (r) => r.paidLeaveDays || 0 },
   // LOP = total loss-of-pay days: unpaid absences (r.lop) + recorded LOP (r.lopDays).
   { key: "lop", label: "LOP", get: (r) => (r.lop || 0) + (r.lopDays || 0) },
+  // What those LOP days are worth: a day's pay × every LOP day. The unpaid part
+  // is already missing from the gross rather than subtracted from it, so this is
+  // the total pay lost to LOP — not a second charge on top of the gross.
+  {
+    key: "lopAmount",
+    label: "LOP Deduction Amount",
+    get: (r) => round2(perDayOf(r) * ((r.lop || 0) + (r.lopDays || 0))),
+  },
   { key: "monthlySalary", label: "Monthly Salary", get: (r) => r.monthlySalary },
+  // Actual Basic Pay = 50% of the AGREED monthly salary, so it is a fixed
+  // contractual figure and does not move with the month's attendance. (The
+  // "Basic" column further along is 50% of the EARNED gross — a different thing.)
+  { key: "actualBasicPay", label: "Actual Basic Pay", get: (r) => round2((r.monthlySalary || 0) * 0.5) },
   { key: "grossSalary", label: "Gross", get: (r) => r.grossSalary },
   { key: "basicPay", label: "Basic", get: (r) => r.basicPay },
   { key: "hra", label: "HRA", get: (r) => r.hra },
@@ -40,6 +61,7 @@ const COLUMNS = [
   { key: "specialAllowance", label: "SA", get: (r) => r.specialAllowance },
   { key: "actualPay", label: "Actual Pay", get: (r) => r.actualPay },
   { key: "lopDeduction", label: "LOP Ded.", get: (r) => r.lopDeduction || 0 },
+  // The minutes/slabs behind this figure live in Salary Adjustments -> Late Minutes.
   { key: "lateDeduction", label: "Late Ded.", get: (r) => r.lateDeduction },
   { key: "salaryAdvance", label: "Salary Adv.", get: (r) => r.salaryAdvance },
   { key: "wfhDeduction", label: "WFH Ded.", get: (r) => r.wfhDeduction },

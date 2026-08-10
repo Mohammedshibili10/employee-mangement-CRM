@@ -6,7 +6,7 @@ import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getDeductionsApi, createLopRecordApi, updateLopRecordApi, deleteLopRecordApi } from "../../api/lopApi.js";
 import { getEmployeesApi } from "../../api/employeeApi.js";
 import { getSalaryReportsApi } from "../../api/salaryApi.js";
-import { updateAttendanceApi } from "../../api/attendanceApi.js";
+import { updateAttendanceApi, pardonLateApi } from "../../api/attendanceApi.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const nowDate = new Date();
@@ -20,6 +20,10 @@ function toDateInput(d) {
 }
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString() : "-";
+}
+// Date + time, used for the pardon audit trail ("approved by X on ...").
+function formatDateTime(d) {
+  return d ? new Date(d).toLocaleString() : "";
 }
 // First day of a month as YYYY-MM-DD (default date for a new LOP in the filtered month).
 function firstOfMonth(m, y) {
@@ -56,7 +60,9 @@ function Deductions() {
   const [form, setForm] = useState({ employee: "", date: toDateInput(nowDate), days: "1", reason: "", pardoned: false });
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
-  const [editingEntryType, setEditingEntryType] = useState(null); // null | 'wfh'
+  const [editingEntryType, setEditingEntryType] = useState(null); // null | 'wfh' | 'late'
+  // Id of the late entry currently being pardoned (disables just that button).
+  const [pardoningId, setPardoningId] = useState(null);
   // Working days + monthly salary used to calculate the LOP deduction (display only).
   const [calc, setCalc] = useState({ workingDays: 0, monthlySalary: 0 });
 
@@ -182,6 +188,26 @@ function Deductions() {
     }
   }
 
+  // Waive a late-arrival deduction (or put it back). The backend records who
+  // approved it and when, and recalculates the employee's Net Pay.
+  async function handlePardonLate(entry) {
+    const pardon = !entry.pardoned;
+    const mins = `${entry.lateMinutes} min`;
+    const question = pardon
+      ? `Pardon ${mins} of lateness for ${entry.employeeName} on ${formatDate(entry.date)}? Those minutes leave the month's total and the salary will be recalculated.`
+      : `Count ${mins} of lateness for ${entry.employeeName} on ${formatDate(entry.date)} again?`;
+    if (!window.confirm(question)) return;
+    try {
+      setPardoningId(entry._id);
+      await pardonLateApi(entry._id, pardon);
+      await fetchDeductions();
+    } catch (err) {
+      alert(err.response?.data?.message || "Failed to pardon the late deduction.");
+    } finally {
+      setPardoningId(null);
+    }
+  }
+
   async function handleDelete(entry) {
     try {
       if (entry.source === "attendance") {
@@ -223,7 +249,7 @@ function Deductions() {
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Deductions</h2>
           <p className="text-sm text-slate-500 mt-1">
-            All Loss of Pay for <span className="font-semibold text-slate-700">{MONTHS[month]} {year}</span> — manual entries, attendance-marked LOP, and unpaid absences.
+            All deductions for <span className="font-semibold text-slate-700">{MONTHS[month]} {year}</span> — manual entries, attendance-marked LOP, unpaid absences, WFH and late arrivals.
           </p>
         </div>
         <Button color="green" onClick={openAdd}>+ Add LOP</Button>
@@ -270,15 +296,27 @@ function Deductions() {
                     <td className="px-4 py-3 text-slate-600">{MONTHS[en.month] || "—"}</td>
                     <td className="px-4 py-3 text-slate-600">{formatDate(en.date)}</td>
                     <td className="px-4 py-3 font-semibold">
-                      <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"}>{en.days}</span>
+                      {/* A late day is measured in minutes — the charge comes from
+                          the month's total, so the day has no day-fraction. */}
+                      <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"}>
+                        {en.entryType === "late" ? `${en.lateMinutes} min` : en.days}
+                      </span>
                     </td>
                     <td className="px-4 py-3 font-semibold">
-                      <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"} title={en.pardoned ? "Waived (pardoned)" : "Deducted from pay"}>{money(amountFor(en))}</span>
+                      {en.entryType === "late" ? (
+                        <span className="text-xs font-medium text-slate-400" title="Late pay is charged on the month's total minutes, not per day — see Salary Adjustments → Late Minutes">
+                          charged monthly
+                        </span>
+                      ) : (
+                        <span className={en.pardoned ? "line-through text-slate-400" : "text-rose-600"} title={en.pardoned ? "Waived (pardoned)" : "Deducted from pay"}>{money(amountFor(en))}</span>
+                      )}
                     </td>
                     <td className="px-4 py-3 text-slate-600 max-w-xs truncate" title={en.reason}>{en.reason || "—"}</td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${
-                        en.entryType === 'wfh'
+                        en.entryType === 'late'
+                          ? 'bg-orange-100 text-orange-700'
+                          : en.entryType === 'wfh'
                           ? 'bg-purple-100 text-purple-700'
                           : en.absence
                           ? 'bg-slate-100 text-slate-600'
@@ -286,14 +324,41 @@ function Deductions() {
                           ? 'bg-sky-100 text-sky-700'
                           : 'bg-brand-100 text-brand-700'
                       }`}>
-                        {en.entryType === 'wfh' ? 'WFH' : en.absence ? 'Absent' : en.source === 'attendance' ? 'Attendance' : 'Manual'}
+                        {en.entryType === 'late' ? 'Late' : en.entryType === 'wfh' ? 'WFH' : en.absence ? 'Absent' : en.source === 'attendance' ? 'Attendance' : 'Manual'}
                       </span>
                       {en.pardoned && (
-                        <span className="ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700">Pardoned</span>
+                        <span
+                          className="ml-1.5 px-2 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-700"
+                          title={en.pardonedBy ? `Pardoned by ${en.pardonedBy}${en.pardonedAt ? ` on ${formatDateTime(en.pardonedAt)}` : ""}` : "Pardoned — not deducted from pay"}
+                        >
+                          Pardoned
+                        </span>
+                      )}
+                      {/* Audit trail: who approved the pardon and when. */}
+                      {en.pardoned && en.pardonedBy && (
+                        <p className="mt-1 text-[10px] font-normal text-slate-400 normal-case">
+                          by {en.pardonedBy}
+                          {en.pardonedAt && ` · ${formatDateTime(en.pardonedAt)}`}
+                        </p>
                       )}
                     </td>
                     <td className="px-4 py-3 space-x-2 whitespace-nowrap">
-                      {en.absence ? (
+                      {en.entryType === 'late' ? (
+                        // Late arrivals aren't editable here — they come from the
+                        // check-in time. The only action is to waive the deduction.
+                        <button
+                          onClick={() => handlePardonLate(en)}
+                          disabled={pardoningId === en._id}
+                          title={en.pardoned ? "Count this day's minutes again" : "Waive this day — its minutes leave the month's total and Net Pay is recalculated"}
+                          className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-colors disabled:opacity-60 disabled:cursor-not-allowed ${
+                            en.pardoned
+                              ? "text-slate-700 bg-slate-100 hover:bg-slate-200"
+                              : "text-amber-800 bg-amber-100 hover:bg-amber-200"
+                          }`}
+                        >
+                          {pardoningId === en._id ? "Saving..." : en.pardoned ? "Un-pardon" : "Pardon"}
+                        </button>
+                      ) : en.absence ? (
                         <span className="text-xs text-slate-400">Synced from Attendance</span>
                       ) : (
                         <div className="flex items-center gap-1.5">
