@@ -18,6 +18,8 @@ const CELL = {
   leave: ABSENT_CELL,
   "half-day": { code: "HD", cls: "bg-violet-50 border-violet-200 text-violet-700" },
   wfh: { code: "W", cls: "bg-purple-50 border-purple-200 text-purple-700" },
+  // A company holiday: paid, and never an absence.
+  holiday: { code: "H", cls: "bg-emerald-50 border-emerald-200 text-emerald-700" },
   off: { code: "WO", cls: "bg-slate-100 border-slate-200 text-slate-400" },
   none: { code: "–", cls: "bg-white border-slate-200 text-slate-300" },
 };
@@ -28,6 +30,7 @@ const LEGEND = [
   ["Late", "border-amber-300 bg-amber-50"],
   ["Half day", "border-violet-300 bg-violet-50"],
   ["WFH", "border-purple-300 bg-purple-50"],
+  ["Holiday", "border-emerald-300 bg-emerald-50"],
   ["Weekly off", "border-slate-300 bg-slate-100"],
 ];
 

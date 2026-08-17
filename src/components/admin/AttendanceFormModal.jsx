@@ -49,6 +49,7 @@ const STATUS_HINTS = {
   "half-day": "Half Day — counts as half a day; half a day's pay.",
   leave: "Full Leave — Sick/Casual are paid (within the monthly cap); None = unpaid (counts as LOP).",
   wfh: "Work From Home — 50% of the day's salary is deducted automatically (unless pardoned).",
+  holiday: "Holiday — a paid day off, exactly like a Sunday. Never attendance, never a loss of pay. Dates set in Holiday Management already apply to everyone; use this for a one-off.",
 };
 
 function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }) {
@@ -374,6 +375,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                 <option value="half-day">Half Day</option>
                 <option value="leave">Full Leave</option>
                 <option value="wfh">Work From Home</option>
+                <option value="holiday">Holiday</option>
               </select>
             </div>
           </div>
@@ -401,7 +403,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                   setSingle((s) => {
                     // Auto-apply the late rule from the employee's assigned start,
                     // unless this is a Leave/WFH day (those keep their status).
-                    const worked = s.status !== "leave" && s.status !== "wfh";
+                    const worked = s.status !== "leave" && s.status !== "wfh" && s.status !== "holiday";
                     return {
                       ...s,
                       checkIn,
@@ -545,7 +547,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                               const cur = prev[emp._id] || emptyRow;
                               // Auto-apply the late rule from this employee's start,
                               // leaving Leave/WFH rows untouched.
-                              const worked = cur.status !== "leave" && cur.status !== "wfh";
+                              const worked = cur.status !== "leave" && cur.status !== "wfh" && cur.status !== "holiday";
                               return {
                                 ...prev,
                                 [emp._id]: {
@@ -587,6 +589,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                           <option value="half-day">Half Day</option>
                           <option value="leave">Full Leave</option>
                           <option value="wfh">WFH</option>
+                          <option value="holiday">Holiday</option>
                         </select>
                       </div>
                     );

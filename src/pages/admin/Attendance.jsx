@@ -98,7 +98,7 @@ function Attendance() {
       acc[r.status] = (acc[r.status] || 0) + 1;
       return acc;
     },
-    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0 }
+    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0, holiday: 0 }
   );
 
   const filtered =
@@ -129,6 +129,7 @@ function Attendance() {
     { label: "Absent", value: summary.absent, color: "text-rose-600" },
     { label: "Leave", value: summary.leave, color: "text-sky-600" },
     { label: "WFH", value: summary.wfh, color: "text-purple-600" },
+    { label: "Holiday", value: summary.holiday, color: "text-emerald-600" },
   ];
 
   return (
@@ -213,6 +214,7 @@ function Attendance() {
             <option value="half-day">Half-day</option>
             <option value="leave">Leave</option>
             <option value="wfh">WFH</option>
+            <option value="holiday">Holiday</option>
           </select>
 
           <div className="flex items-center gap-2 sm:ml-auto">

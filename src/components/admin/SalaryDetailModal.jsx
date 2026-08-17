@@ -107,6 +107,10 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
           {/* Total calendar days in the month, Sundays included. */}
           <Row label="Working Days" value={daysInMonth(report.year, report.month)} strong />
           <Row label="Attendance Days" value={report.attendanceDays} />
+          {/* Paid without any attendance being marked — a Sunday and a company
+              holiday behave identically. */}
+          <Row label="Paid Sundays" value={report.paidSundays || 0} />
+          <Row label="Paid Holidays" value={report.paidHolidays || 0} />
           <Row label="Sick Leave (taken)" value={sick} />
           <Row label="Casual Leave (taken)" value={casual} />
           <Row label="Total Paid Leave (max 2)" value={paidLeave} strong />

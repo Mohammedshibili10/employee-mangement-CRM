@@ -7,6 +7,7 @@ function statusClass(status) {
   if (status === "absent") return "bg-rose-100 text-rose-700";
   if (status === "leave") return "bg-sky-100 text-sky-700";
   if (status === "wfh") return "bg-purple-100 text-purple-700";
+  if (status === "holiday") return "bg-emerald-100 text-emerald-700";
   return "bg-slate-100 text-slate-500";
 }
 
@@ -14,6 +15,7 @@ function statusClass(status) {
 function statusLabel(row) {
   if (row.status === "leave" && row.leaveType) return `${row.leaveType} leave`;
   if (row.status === "wfh") return "WFH";
+  if (row.status === "holiday") return "Holiday";
   return row.status;
 }
 

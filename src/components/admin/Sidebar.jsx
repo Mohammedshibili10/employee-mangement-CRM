@@ -10,6 +10,7 @@ const menu = [
   { name: "Employees", path: "/admin/employees", icon: "employees" },
   { name: "Departments", path: "/admin/departments", icon: "departments" },
   { name: "Attendance", path: "/admin/attendance", icon: "attendance" },
+  { name: "Holidays", path: "/admin/holidays", icon: "leaves" },
   { name: "Salary Report", path: "/admin/salary", icon: "salary" },
   {
     name: "Salary Adjustments",
