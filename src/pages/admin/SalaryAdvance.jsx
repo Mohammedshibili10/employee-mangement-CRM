@@ -13,6 +13,7 @@ import {
   deleteSalaryAdvanceApi,
 } from "../../api/salaryAdvanceApi.js";
 import { getEmployeesApi } from "../../api/employeeApi.js";
+import { formatDate } from "../../utils/formatDate.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const nowDate = new Date();
@@ -25,9 +26,6 @@ function toDateInput(d) {
   if (isNaN(date.getTime())) return "";
   const off = date.getTimezoneOffset();
   return new Date(date.getTime() - off * 60000).toISOString().slice(0, 10);
-}
-function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString() : "-";
 }
 function firstOfMonth(m, y) {
   return `${y}-${String(m).padStart(2, "0")}-01`;

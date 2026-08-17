@@ -7,24 +7,12 @@ import { getDeductionsApi, createLopRecordApi, updateLopRecordApi, deleteLopReco
 import { getEmployeesApi } from "../../api/employeeApi.js";
 import { getSalaryReportsApi } from "../../api/salaryApi.js";
 import { updateAttendanceApi, pardonLateApi } from "../../api/attendanceApi.js";
+import { formatDate, formatDateTime, toDateInput } from "../../utils/formatDate.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const nowDate = new Date();
 const YEARS = [nowDate.getFullYear() + 1, nowDate.getFullYear(), nowDate.getFullYear() - 1, nowDate.getFullYear() - 2];
 
-function toDateInput(d) {
-  if (!d) return "";
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return "";
-  return date.toISOString().slice(0, 10);
-}
-function formatDate(d) {
-  return d ? new Date(d).toLocaleDateString() : "-";
-}
-// Date + time, used for the pardon audit trail ("approved by X on ...").
-function formatDateTime(d) {
-  return d ? new Date(d).toLocaleString() : "";
-}
 // First day of a month as YYYY-MM-DD (default date for a new LOP in the filtered month).
 function firstOfMonth(m, y) {
   return `${y}-${String(m).padStart(2, "0")}-01`;

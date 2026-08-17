@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { formatDate } from "../../utils/formatDate.js";
 import Button from "../../components/common/Button.jsx";
 import Modal from "../../components/common/Modal.jsx";
 import Input from "../../components/common/Input.jsx";
@@ -163,7 +164,7 @@ function EmployeeDetails() {
   }
 
   const joiningDate = employee.joiningDate
-    ? new Date(employee.joiningDate).toLocaleDateString()
+    ? formatDate(employee.joiningDate)
     : "-";
 
   const salary =

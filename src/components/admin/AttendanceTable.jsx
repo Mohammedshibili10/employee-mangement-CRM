@@ -1,5 +1,6 @@
 import Table from "../common/Table.jsx";
 import ActionButton from "../common/ActionButton.jsx";
+import { formatDate } from "../../utils/formatDate.js";
 
 function statusClass(status) {
   if (status === "present") return "bg-brand-100 text-brand-700";
@@ -17,10 +18,6 @@ function statusLabel(row) {
   if (row.status === "wfh") return "WFH";
   if (row.status === "holiday") return "Holiday";
   return row.status;
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : "-";
 }
 
 function formatTime(value) {

@@ -116,7 +116,7 @@ function Profile() {
     email: me.email,
     phone: me.phone || "-",
     department: me.department || "-",
-    joiningDate: me.joiningDate ? new Date(me.joiningDate).toLocaleDateString() : "-",
+    joiningDate: me.joiningDate ? formatDate(me.joiningDate) : "-",
   };
 
   return (

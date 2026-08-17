@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AttendanceTable from "../../components/admin/AttendanceTable.jsx";
 import MonthlyAttendanceGrid from "../../components/admin/MonthlyAttendanceGrid.jsx";
+import { formatDateLong } from "../../utils/formatDate.js";
 import AttendanceFormModal from "../../components/admin/AttendanceFormModal.jsx";
 import Button from "../../components/common/Button.jsx";
 import { SkeletonTable } from "../../components/common/Skeleton.jsx";
@@ -108,7 +109,7 @@ function Attendance() {
   const [ly, lm] = month.split("-");
   const reportLabel =
     mode === "daily"
-      ? new Date(day).toLocaleDateString(undefined, { weekday: "long", year: "numeric", month: "long", day: "numeric" })
+      ? formatDateLong(day)
       : `${MONTHS[Number(lm) - 1]} ${ly}`;
 
   // Export the currently-shown daily report (respects the status filter).

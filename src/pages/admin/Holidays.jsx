@@ -10,19 +10,13 @@ import {
   deleteHolidayApi,
   applyHolidayApi,
 } from "../../api/holidayApi.js";
+import { formatDate, toDateInput } from "../../utils/formatDate.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DAYS = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
 const nowDate = new Date();
 const YEARS = [nowDate.getFullYear() + 1, nowDate.getFullYear(), nowDate.getFullYear() - 1, nowDate.getFullYear() - 2];
 
-function toDateInput(d) {
-  if (!d) return "";
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return "";
-  // Local parts, so a holiday never slips a day through a timezone conversion.
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
 const todayStr = () => toDateInput(new Date());
 
 function Holidays() {
@@ -110,7 +104,7 @@ function Holidays() {
   }
 
   async function handleDelete(h) {
-    if (!window.confirm(`Remove ${h.name} on ${new Date(h.date).toLocaleDateString()}? Attendance and payroll for that month will be recalculated.`)) return;
+    if (!window.confirm(`Remove ${h.name} on ${formatDate(h.date)}? Attendance and payroll for that month will be recalculated.`)) return;
     try {
       await deleteHolidayApi(h._id);
       await fetchHolidays();
@@ -189,7 +183,7 @@ function Holidays() {
                         const d = new Date(h.date);
                         return (
                           <tr key={h._id} className="hover:bg-brand-50/40 transition-colors">
-                            <td className="px-4 py-3 font-semibold text-slate-800">{d.toLocaleDateString()}</td>
+                            <td className="px-4 py-3 font-semibold text-slate-800">{formatDate(d)}</td>
                             <td className="px-4 py-3 text-slate-600">{DAYS[d.getDay()]}</td>
                             <td className="px-4 py-3 font-semibold text-slate-800">{h.name}</td>
                             <td className="px-4 py-3">

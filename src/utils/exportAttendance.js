@@ -1,10 +1,10 @@
+
 // Dependency-free export of the daily attendance report.
 //  - Excel: an HTML table saved as a real .xls file (Excel opens it as a sheet).
 //  - PDF: a clean print-ready page where the user chooses "Save as PDF".
 
-function fmtDate(v) {
-  return v ? new Date(v).toLocaleDateString() : "-";
-}
+import { formatDate as fmtDate } from './formatDate.js';
+
 function fmtTime(v) {
   return v ? new Date(v).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
 }

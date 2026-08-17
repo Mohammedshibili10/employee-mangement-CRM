@@ -7,16 +7,13 @@ import Table from "../../components/common/Table.jsx";
 import { SkeletonTable } from "../../components/common/Skeleton.jsx";
 import { getMeApi } from "../../api/authApi.js";
 import { getAttendanceApi } from "../../api/attendanceApi.js";
+import { formatDate } from "../../utils/formatDate.js";
 
 function statusClass(status) {
   if (status === "present") return "bg-brand-100 text-brand-700";
   if (status === "late") return "bg-amber-100 text-amber-700";
   if (status === "absent") return "bg-rose-100 text-rose-700";
   return "bg-slate-100 text-slate-500";
-}
-
-function formatDate(value) {
-  return value ? new Date(value).toLocaleDateString() : "-";
 }
 
 function formatTime(value) {

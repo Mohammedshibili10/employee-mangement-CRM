@@ -6,10 +6,8 @@ import {
   getEmployeeReportApi,
   getAttendanceReportApi,
 } from "../../api/reportApi.js";
+import { formatDate } from "../../utils/formatDate.js";
 
-function formatDate(v) {
-  return v ? new Date(v).toLocaleDateString() : "-";
-}
 function formatTime(v) {
   return v ? new Date(v).toLocaleTimeString("en-US", { hour: "2-digit", minute: "2-digit", hour12: true }) : "-";
 }

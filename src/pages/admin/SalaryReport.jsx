@@ -14,15 +14,9 @@ const round2 = (n) => Math.round((Number(n) || 0) * 100) / 100;
 // Total calendar days in a month — 31 for July, 30 for June, 28/29 for February
 // depending on the year. Never hardcoded.
 const daysInMonth = (year, month) => (year && month ? new Date(year, month, 0).getDate() : 0);
-// A day's pay for a row: monthly salary ÷ the month's calendar days. Falls back
-// to the month length so a row saved before working days were stored still works.
-const perDayOf = (r) => {
-  const wd = r.monthlyWorkingDays || daysInMonth(r.year, r.month);
-  return wd > 0 ? (r.monthlySalary || 0) / wd : 0;
-};
 
 const MONEY_KEYS = new Set([
-  "monthlySalary", "actualBasicPay", "grossSalary", "basicPay", "hra", "lta", "specialAllowance", "lopAmount",
+  "monthlySalary", "actualBasicPay", "grossSalary", "basicPay", "hra", "lta","specialAllowance",
   "actualPay", "lopDeduction", "lateDeduction", "salaryAdvance", "wfhDeduction", "officeExpenses",
   "assetDeduction", "pfDeduction", "employeeEsi", "netPay",
 ]);
@@ -41,14 +35,6 @@ const COLUMNS = [
   { key: "paidLeaveDays", label: "Leave", get: (r) => r.paidLeaveDays || 0 },
   // LOP = total loss-of-pay days: unpaid absences (r.lop) + recorded LOP (r.lopDays).
   { key: "lop", label: "LOP", get: (r) => (r.lop || 0) + (r.lopDays || 0) },
-  // What those LOP days are worth: a day's pay × every LOP day. The unpaid part
-  // is already missing from the gross rather than subtracted from it, so this is
-  // the total pay lost to LOP — not a second charge on top of the gross.
-  {
-    key: "lopAmount",
-    label: "LOP Deduction Amount",
-    get: (r) => round2(perDayOf(r) * ((r.lop || 0) + (r.lopDays || 0))),
-  },
   { key: "monthlySalary", label: "Monthly Salary", get: (r) => r.monthlySalary },
   // Actual Basic Pay = 50% of the AGREED monthly salary, so it is a fixed
   // contractual figure and does not move with the month's attendance. (The
