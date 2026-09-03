@@ -7,7 +7,7 @@ const emailField = z
   .regex(/^[^\s@]+@[^\s@]+\.[^\s@]+$/, "Enter a valid email address");
 
 export const loginSchema = z.object({
-  email: emailField,
+  email: z.string().trim().min(1, "Email or Employee ID is required"),
   password: z.string().min(1, "Password is required"),
 });
 

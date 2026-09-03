@@ -4,11 +4,12 @@ import react from "@vitejs/plugin-react";
 // Basic Vite setup for a React app
 export default defineConfig({
   plugins: [react()],
-  // Send any request starting with /api to the backend running on port 5000.
-  // This lets the frontend use relative URLs like axios.post("/api/auth/login").
   server: {
     proxy: {
-      "/api": "http://localhost:5000",
+      "/api": {
+        target: "http://127.0.0.1:5001",
+        changeOrigin: true,
+      },
     },
   },
 });

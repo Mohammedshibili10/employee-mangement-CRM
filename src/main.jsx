@@ -8,8 +8,9 @@ import { setupAuthInterceptor } from "./api/axiosInstance.js";
 import App from "./App.jsx";
 import ErrorBoundary from "./components/common/ErrorBoundary.jsx";
 import "./index.css";
-
-axios.defaults.baseURL = import.meta.env.VITE_API_URL ||  "http://localhost:5000";
+if (import.meta.env.VITE_API_URL) {
+  axios.defaults.baseURL = import.meta.env.VITE_API_URL;
+}
 
 // Sign the user out and send them back to login as soon as the token is rejected.
 setupAuthInterceptor(store);

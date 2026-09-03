@@ -10,6 +10,8 @@ import {
   deleteHolidayApi,
   applyHolidayApi,
 } from "../../api/holidayApi.js";
+import { getDepartmentsApi } from "../../api/departmentApi.js";
+import { getEmployeesApi } from "../../api/employeeApi.js";
 import { formatDate, toDateInput } from "../../utils/formatDate.js";
 
 const MONTHS = ["", "January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -21,19 +23,31 @@ const todayStr = () => toDateInput(new Date());
 
 function Holidays() {
   const [holidays, setHolidays] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [employees, setEmployees] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [year, setYear] = useState(nowDate.getFullYear());
 
   const [modalOpen, setModalOpen] = useState(false);
   const [editingId, setEditingId] = useState(null);
-  const [form, setForm] = useState({ name: "", date: todayStr(), description: "", paid: true });
+  const [form, setForm] = useState({
+    name: "",
+    date: todayStr(),
+    description: "",
+    paid: true,
+    applicableTo: "all",
+    department: "",
+    employees: [],
+  });
+  const [empSearch, setEmpSearch] = useState("");
   const [formErrors, setFormErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [syncingId, setSyncingId] = useState(null);
 
   useEffect(() => {
     fetchHolidays();
+    fetchDepartmentsAndEmployees();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [year]);
 
@@ -51,21 +65,51 @@ function Holidays() {
     }
   }
 
+  async function fetchDepartmentsAndEmployees() {
+    try {
+      const [deptRes, empRes] = await Promise.all([
+        getDepartmentsApi(),
+        getEmployeesApi({ includeInactive: false }),
+      ]);
+      setDepartments(deptRes.departments || deptRes || []);
+      setEmployees(empRes.employees || empRes || []);
+    } catch (err) {
+      console.error("Failed to load departments/employees:", err);
+    }
+  }
+
   function openAdd() {
     setEditingId(null);
-    setForm({ name: "", date: todayStr(), description: "", paid: true });
+    setForm({
+      name: "",
+      date: todayStr(),
+      description: "",
+      paid: true,
+      applicableTo: "all",
+      department: "",
+      employees: [],
+    });
+    setEmpSearch("");
     setFormErrors({});
     setModalOpen(true);
   }
 
   function openEdit(h) {
     setEditingId(h._id);
+    const deptId = typeof h.department === "object" ? h.department?._id : h.department;
+    const empIds = Array.isArray(h.employees)
+      ? h.employees.map((e) => (typeof e === "object" ? e._id : e))
+      : [];
     setForm({
       name: h.name || "",
       date: toDateInput(h.date),
       description: h.description || "",
       paid: h.paid !== false,
+      applicableTo: h.applicableTo || "all",
+      department: deptId || "",
+      employees: empIds,
     });
+    setEmpSearch("");
     setFormErrors({});
     setModalOpen(true);
   }
@@ -75,6 +119,13 @@ function Holidays() {
     const errors = {};
     if (!form.name.trim()) errors.name = "Enter the holiday name";
     if (!form.date) errors.date = "Choose a date";
+    if (form.applicableTo === "department" && !form.department) {
+      errors.department = "Select a department";
+    }
+    if (form.applicableTo === "employee" && (!form.employees || form.employees.length === 0)) {
+      errors.employees = "Select at least one employee";
+    }
+
     if (Object.keys(errors).length) { setFormErrors(errors); return; }
     setFormErrors({});
 
@@ -128,9 +179,8 @@ function Holidays() {
         <div>
           <h2 className="text-2xl font-extrabold tracking-tight text-slate-800">Holiday Management</h2>
           <p className="text-sm text-slate-500 mt-1">
-            Company holidays for <span className="font-semibold text-slate-700">{year}</span>. Every date added here is
-            applied to <span className="font-semibold">all employees automatically</span> — the day shows as a holiday in
-            Attendance and is paid in full, never counted as an absence or a loss of pay.
+            Company holidays for <span className="font-semibold text-slate-700">{year}</span>. Assign holidays to
+            <span className="font-semibold text-slate-700"> All Employees</span>, a <span className="font-semibold text-slate-700">Specific Department</span>, or <span className="font-semibold text-slate-700">Specific Employees</span>.
           </p>
         </div>
         <Button color="green" onClick={openAdd}>+ Add Holiday</Button>
@@ -154,7 +204,7 @@ function Holidays() {
         </div>
       </div>
 
-      {loading && <SkeletonTable rows={6} cols={5} />}
+      {loading && <SkeletonTable rows={6} cols={6} />}
       {error && <p className="text-center text-rose-500 mt-6">{error}</p>}
 
       {!loading && !error && (
@@ -163,7 +213,7 @@ function Holidays() {
             <table className="w-full text-left text-sm whitespace-nowrap">
               <thead className="bg-slate-50/80 text-slate-500 border-b border-slate-200/70">
                 <tr>
-                  {["Date", "Day", "Holiday", "Type", "Notes", "Actions"].map((h) => (
+                  {["Date", "Day", "Holiday", "Assigned To", "Type", "Notes", "Actions"].map((h) => (
                     <th key={h} className="px-4 py-3 text-[11px] font-semibold uppercase tracking-wider">{h}</th>
                   ))}
                 </tr>
@@ -175,17 +225,40 @@ function Holidays() {
                   .map((m) => (
                     <Fragment key={`month-${m}`}>
                       <tr className="bg-slate-50/60">
-                        <td colSpan={6} className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
+                        <td colSpan={7} className="px-4 py-2 text-[11px] font-bold uppercase tracking-wider text-slate-500">
                           {MONTHS[m]} · {byMonth[m].length}
                         </td>
                       </tr>
                       {byMonth[m].map((h) => {
                         const d = new Date(h.date);
+                        const app = h.applicableTo || "all";
+                        const deptName = h.department?.name || (typeof h.department === "string" ? h.department : "Department");
+                        const empNames = Array.isArray(h.employees)
+                          ? h.employees.map((e) => (typeof e === "object" ? e.name : "Employee")).join(", ")
+                          : "";
+
                         return (
                           <tr key={h._id} className="hover:bg-brand-50/40 transition-colors">
                             <td className="px-4 py-3 font-semibold text-slate-800">{formatDate(d)}</td>
                             <td className="px-4 py-3 text-slate-600">{DAYS[d.getDay()]}</td>
                             <td className="px-4 py-3 font-semibold text-slate-800">{h.name}</td>
+                            <td className="px-4 py-3">
+                              {app === "all" && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/80">
+                                  All Employees
+                                </span>
+                              )}
+                              {app === "department" && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200/80" title={`Department: ${deptName}`}>
+                                  Dept: {deptName}
+                                </span>
+                              )}
+                              {app === "employee" && (
+                                <span className="px-2.5 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200/80" title={empNames}>
+                                  {h.employees?.length || 0} Employee(s)
+                                </span>
+                              )}
+                            </td>
                             <td className="px-4 py-3">
                               <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${h.paid !== false ? "bg-emerald-100 text-emerald-700" : "bg-slate-100 text-slate-600"}`}>
                                 {h.paid !== false ? "Paid" : "Unpaid"}
@@ -212,7 +285,7 @@ function Holidays() {
                                 <button
                                   onClick={() => handleApply(h)}
                                   disabled={syncingId === h._id}
-                                  title="Mark this holiday in Attendance for everyone (covers employees who joined later)"
+                                  title="Sync this holiday in Attendance"
                                   className="px-2.5 py-1 rounded-lg text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 transition-colors disabled:opacity-60"
                                 >
                                   {syncingId === h._id ? "..." : "Sync"}
@@ -250,10 +323,143 @@ function Holidays() {
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)} title={editingId ? "Edit Holiday" : "Add Holiday"} size="lg">
         <form onSubmit={handleSave} noValidate>
-          <div className="mb-4 rounded-xl border border-emerald-200 bg-emerald-50 px-3.5 py-2.5 text-sm text-emerald-800">
-            The date is applied to <span className="font-semibold">every employee</span> the moment it is saved — no
-            attendance needs to be marked. Payroll for that month recalculates automatically.
+          {/* Options Shown First */}
+          <div className="mb-5">
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-500 mb-2">
+              Assign Holiday To <span className="text-rose-500">*</span>
+            </label>
+            <div className="grid grid-cols-3 gap-2.5">
+              {[
+                { id: "all", label: "All Employees", icon: "👥", desc: "Company-wide" },
+                { id: "department", label: "Specific Department", icon: "🏢", desc: "Selected Dept" },
+                { id: "employee", label: "Specific Employee", icon: "👤", desc: "Selected Staff" },
+              ].map((opt) => {
+                const active = form.applicableTo === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => setForm({ ...form, applicableTo: opt.id })}
+                    className={`flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all ${
+                      active
+                        ? "border-brand-500 bg-brand-50/70 text-brand-900 ring-2 ring-brand-500/20 font-bold"
+                        : "border-slate-200 bg-white text-slate-600 hover:bg-slate-50 hover:border-slate-300"
+                    }`}
+                  >
+                    <span className="text-lg mb-1">{opt.icon}</span>
+                    <span className="text-xs font-semibold leading-tight">{opt.label}</span>
+                  </button>
+                );
+              })}
+            </div>
           </div>
+
+          {/* Department Dropdown */}
+          {form.applicableTo === "department" && (
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-slate-700 mb-1">
+                Select Department <span className="text-rose-500">*</span>
+              </label>
+              <select
+                value={form.department}
+                onChange={(e) => setForm({ ...form, department: e.target.value })}
+                className={`w-full rounded-xl border px-3.5 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-4 focus:ring-brand-500/15 ${
+                  formErrors.department ? "border-rose-400 bg-rose-50/30" : "border-slate-200 bg-white focus:border-brand-400"
+                }`}
+              >
+                <option value="">-- Select Department --</option>
+                {departments.map((d) => (
+                  <option key={d._id} value={d._id}>
+                    {d.name}
+                  </option>
+                ))}
+              </select>
+              {formErrors.department && <p className="text-xs text-rose-500 mt-1">{formErrors.department}</p>}
+            </div>
+          )}
+
+          {/* Employee Multi-Select */}
+          {form.applicableTo === "employee" && (
+            <div className="mb-4">
+              <div className="flex items-center justify-between mb-1.5">
+                <label className="block text-sm font-medium text-slate-700">
+                  Select Employee(s) <span className="text-rose-500">*</span>
+                  {form.employees.length > 0 && (
+                    <span className="ml-2 text-xs font-semibold px-2 py-0.5 rounded-full bg-brand-100 text-brand-800">
+                      {form.employees.length} selected
+                    </span>
+                  )}
+                </label>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, employees: employees.map((e) => e._id) })}
+                    className="text-[11px] font-semibold text-brand-600 hover:text-brand-800"
+                  >
+                    Select All
+                  </button>
+                  <span className="text-slate-300">|</span>
+                  <button
+                    type="button"
+                    onClick={() => setForm({ ...form, employees: [] })}
+                    className="text-[11px] font-semibold text-slate-500 hover:text-slate-700"
+                  >
+                    Clear
+                  </button>
+                </div>
+              </div>
+
+              <input
+                type="text"
+                placeholder="Search employees..."
+                value={empSearch}
+                onChange={(e) => setEmpSearch(e.target.value)}
+                className="w-full rounded-xl border border-slate-200 px-3 py-1.5 text-xs text-slate-800 mb-2 focus:outline-none focus:border-brand-400"
+              />
+
+              <div className="max-h-44 overflow-y-auto rounded-xl border border-slate-200 bg-slate-50/50 p-2 space-y-1 scrollbar-slim">
+                {employees
+                  .filter(
+                    (e) =>
+                      (e.name || "").toLowerCase().includes(empSearch.toLowerCase()) ||
+                      (e.empId || "").toLowerCase().includes(empSearch.toLowerCase())
+                  )
+                  .map((emp) => {
+                    const isChecked = form.employees.includes(emp._id);
+                    return (
+                      <label
+                        key={emp._id}
+                        className={`flex items-center justify-between p-2 rounded-lg text-xs cursor-pointer transition-colors ${
+                          isChecked ? "bg-brand-50 text-brand-900 font-semibold" : "hover:bg-slate-100 text-slate-700"
+                        }`}
+                      >
+                        <div className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            checked={isChecked}
+                            onChange={(e) => {
+                              const newEmps = e.target.checked
+                                ? [...form.employees, emp._id]
+                                : form.employees.filter((id) => id !== emp._id);
+                              setForm({ ...form, employees: newEmps });
+                            }}
+                            className="h-4 w-4 accent-brand-600 rounded"
+                          />
+                          <span>{emp.name}</span>
+                          <span className="text-[10px] text-slate-400 font-normal">({emp.empId})</span>
+                        </div>
+                        {emp.department?.name && (
+                          <span className="text-[10px] text-slate-500 bg-slate-200/60 px-1.5 py-0.5 rounded">
+                            {emp.department.name}
+                          </span>
+                        )}
+                      </label>
+                    );
+                  })}
+              </div>
+              {formErrors.employees && <p className="text-xs text-rose-500 mt-1">{formErrors.employees}</p>}
+            </div>
+          )}
 
           <Input
             label="Holiday Name"
@@ -291,7 +497,7 @@ function Holidays() {
             </label>
             <p className="text-[11px] text-slate-400 mt-1 ml-6">
               {form.paid
-                ? "Everyone is paid for the day exactly like a Sunday, with no attendance marked."
+                ? "Targeted employees are paid for the day exactly like a Sunday, with no attendance marked."
                 : "An unpaid shutdown: nobody is due in and nobody is charged, but the day is not paid either — the month is prorated."}
             </p>
           </div>
@@ -320,3 +526,4 @@ function Holidays() {
 }
 
 export default Holidays;
+
