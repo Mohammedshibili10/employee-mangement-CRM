@@ -44,6 +44,7 @@ const emptySingle = { employeeId: "", date: todayStr(), status: "present", check
 
 // Short explanation of how each status affects the salary — shown under the picker.
 const STATUS_HINTS = {
+  none: "None — no attendance recorded for this day (unmarked / zero hours).",
   present: "Present — counts as a full day. A late-arrival deduction still applies if the check-in is after the start time.",
   late: "Late — counts as a full day, minus a late-arrival deduction based on the check-in time.",
   "half-day": "Half Day — counts as half a day; half a day's pay.",
@@ -193,12 +194,23 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
   async function handleSingleSave() {
     if (!single.employeeId) return setSingleError("Please select an employee.");
     if (!single.date) return setSingleError("Please choose a date.");
-    if (!singleIsLeave && !single.checkIn && !isEdit)
-      return setSingleError("Set a check-in time, or choose Full Leave as the status.");
+    if (!singleIsLeave && single.status !== "none" && !single.checkIn && !isEdit)
+      return setSingleError("Set a check-in time, or choose Full Leave / None as the status.");
     setSingleError("");
     setSaving(true);
     try {
-      const payload = singleIsLeave
+      const payload = single.status === "none"
+        ? {
+            employee: single.employeeId,
+            date: single.date,
+            status: "none",
+            checkIn: single.checkIn ? combine(single.date, single.checkIn) : null,
+            checkOut: single.checkOut ? combine(single.date, single.checkOut) : null,
+            leaveType: "",
+            lop: single.lopChecked ? (Number(single.lop) || 0) : 0,
+            lopReason: single.lopChecked ? single.lopReason : "",
+          }
+        : singleIsLeave
         ? {
             employee: single.employeeId,
             date: single.date,
@@ -290,7 +302,18 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
     setSaving(true);
     let created = 0, updated = 0, skipped = 0;
     for (const { emp, row } of changed) {
-      const payload = row.status === "leave"
+      const payload = row.status === "none"
+        ? {
+            employee: emp._id,
+            date: bulkDate,
+            status: "none",
+            checkIn: row.checkIn ? combine(bulkDate, row.checkIn) : null,
+            checkOut: row.checkOut ? combine(bulkDate, row.checkOut) : null,
+            leaveType: "",
+            lop: row.lopChecked ? (Number(row.lop) || 0) : 0,
+            lopReason: row.lopChecked ? row.lopReason : "",
+          }
+        : row.status === "leave"
         ? {
             employee: emp._id,
             date: bulkDate,
@@ -370,6 +393,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             <div className="mb-4">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Status</label>
               <select value={single.status} onChange={(e) => setSingleStatus(e.target.value)} className={inputCls}>
+                <option value="none">None</option>
                 <option value="present">Present</option>
                 <option value="late">Late</option>
                 <option value="half-day">Half Day</option>
@@ -397,13 +421,13 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
               <input
                 type="time"
                 value={single.checkIn}
-                disabled={singleIsLeave}
+                disabled={singleIsLeave || single.status === "none"}
                 onChange={(e) => {
                   const checkIn = e.target.value;
                   setSingle((s) => {
                     // Auto-apply the late rule from the employee's assigned start,
                     // unless this is a Leave/WFH day (those keep their status).
-                    const worked = s.status !== "leave" && s.status !== "wfh" && s.status !== "holiday";
+                    const worked = s.status !== "leave" && s.status !== "wfh" && s.status !== "holiday" && s.status !== "none";
                     return {
                       ...s,
                       checkIn,
@@ -416,7 +440,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             </div>
             <div className="mb-2">
               <label className="block text-sm font-medium text-slate-700 mb-1.5">Check-out Time</label>
-              <input type="time" value={single.checkOut} disabled={singleIsLeave} onChange={(e) => setSingle({ ...single, checkOut: e.target.value })} className={inputCls} />
+              <input type="time" value={single.checkOut} disabled={singleIsLeave || single.status === "none"} onChange={(e) => setSingle({ ...single, checkOut: e.target.value })} className={inputCls} />
             </div>
           </div>
 
@@ -584,6 +608,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                         </div>
                         <select value={row.status} onChange={(e) => setRowStatus(emp._id, e.target.value)} className={cellCls}>
                           <option value="">—</option>
+                          <option value="none">None</option>
                           <option value="present">Present</option>
                           <option value="late">Late</option>
                           <option value="half-day">Half Day</option>

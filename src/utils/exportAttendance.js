@@ -10,6 +10,7 @@ function fmtTime(v) {
 }
 function statusLabel(r) {
   if (r.status === "leave" && r.leaveType) return `${r.leaveType} leave`;
+  if (r.status === "none") return "None";
   return r.status || "-";
 }
 function overtimeLabel(r) {

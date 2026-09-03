@@ -99,7 +99,7 @@ function Attendance() {
       acc[r.status] = (acc[r.status] || 0) + 1;
       return acc;
     },
-    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0, holiday: 0 }
+    { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0, holiday: 0, none: 0 }
   );
 
   const filtered =
@@ -131,6 +131,7 @@ function Attendance() {
     { label: "Leave", value: summary.leave, color: "text-sky-600" },
     { label: "WFH", value: summary.wfh, color: "text-purple-600" },
     { label: "Holiday", value: summary.holiday, color: "text-emerald-600" },
+    { label: "None", value: summary.none, color: "text-slate-600" },
   ];
 
   return (
@@ -187,7 +188,7 @@ function Attendance() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-5">
+      <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-3 mb-5">
         {cards.map((c) => (
           <div
             key={c.label}
@@ -216,6 +217,7 @@ function Attendance() {
             <option value="leave">Leave</option>
             <option value="wfh">WFH</option>
             <option value="holiday">Holiday</option>
+            <option value="none">None</option>
           </select>
 
           <div className="flex items-center gap-2 sm:ml-auto">
