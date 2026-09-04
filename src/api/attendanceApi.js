@@ -10,6 +10,8 @@ export const getAttendanceApi = async (params) => {
     if (query.date) qs.set('date', query.date);
     if (query.month) qs.set('month', query.month);
     if (query.year) qs.set('year', query.year);
+    if (query.startDate) qs.set('startDate', query.startDate);
+    if (query.endDate) qs.set('endDate', query.endDate);
     const url = qs.toString() ? `/api/attendance?${qs.toString()}` : '/api/attendance';
     const res = await axios.get(url, {
         headers: { Authorization: `Bearer ${token}` },

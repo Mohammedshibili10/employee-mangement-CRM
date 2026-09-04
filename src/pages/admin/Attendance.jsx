@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import AttendanceTable from "../../components/admin/AttendanceTable.jsx";
 import MonthlyAttendanceGrid from "../../components/admin/MonthlyAttendanceGrid.jsx";
+import ThirtyDayAttendanceTable from "../../components/admin/ThirtyDayAttendanceTable.jsx";
 import { formatDateLong } from "../../utils/formatDate.js";
 import AttendanceFormModal from "../../components/admin/AttendanceFormModal.jsx";
 import Button from "../../components/common/Button.jsx";
@@ -29,11 +30,12 @@ function Attendance() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Report controls: daily (default) or monthly.
+  // Report controls: daily (default), monthly grid, or 30-day table.
   const [mode, setMode] = useState("daily");
   const [month, setMonth] = useState(toMonthStr(now)); // "YYYY-MM"
   const [day, setDay] = useState(toDayStr(now)); // "YYYY-MM-DD"
   const [statusFilter, setStatusFilter] = useState("All");
+  const [searchQuery, setSearchQuery] = useState("");
 
   const [formOpen, setFormOpen] = useState(false);
   const [editRecord, setEditRecord] = useState(null);
@@ -102,20 +104,30 @@ function Attendance() {
     { present: 0, late: 0, absent: 0, "half-day": 0, leave: 0, wfh: 0, holiday: 0, none: 0 }
   );
 
-  const filtered =
-    statusFilter === "All" ? records : records.filter((row) => row.status === statusFilter);
+  const filtered = records.filter((row) => {
+    const matchesStatus = statusFilter === "All" || row.status === statusFilter;
+    const name = row.employee?.name || "";
+    const dept = row.employee?.department?.name || "";
+    const matchesSearch =
+      !searchQuery ||
+      name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      dept.toLowerCase().includes(searchQuery.toLowerCase());
+    return matchesStatus && matchesSearch;
+  });
 
   // Heading label for the current report period.
   const [ly, lm] = month.split("-");
   const reportLabel =
     mode === "daily"
       ? formatDateLong(day)
-      : `${MONTHS[Number(lm) - 1]} ${ly}`;
+      : mode === "monthly"
+      ? `${MONTHS[Number(lm) - 1]} ${ly} (Grid)`
+      : `${MONTHS[Number(lm) - 1]} ${ly} (30-Day Table)`;
 
-  // Export the currently-shown daily report (respects the status filter).
+  // Export the currently-shown report (respects the status & search filters).
   function handleExport(type) {
     if (filtered.length === 0) {
-      alert("No attendance records to export for the selected date.");
+      alert("No attendance records to export for the selected view.");
       return;
     }
     if (type === "excel") exportAttendanceExcel(filtered, reportLabel);
@@ -146,8 +158,9 @@ function Attendance() {
         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
           <div className="inline-flex rounded-xl bg-slate-100 p-1">
             {[
-              { key: "monthly", label: "Monthly Report" },
               { key: "daily", label: "Daily Report" },
+              { key: "monthly", label: "Monthly Grid" },
+              { key: "30days", label: "30-Day Table" },
             ].map((t) => (
               <button
                 key={t.key}
@@ -162,23 +175,23 @@ function Attendance() {
             ))}
           </div>
 
-          {mode === "monthly" ? (
-            <div className="flex items-center gap-2">
-              <label className="text-sm font-medium text-slate-600">Month</label>
-              <input
-                type="month"
-                value={month}
-                onChange={(e) => setMonth(e.target.value)}
-                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
-              />
-            </div>
-          ) : (
+          {mode === "daily" ? (
             <div className="flex items-center gap-2">
               <label className="text-sm font-medium text-slate-600">Date</label>
               <input
                 type="date"
                 value={day}
                 onChange={(e) => setDay(e.target.value)}
+                className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
+              />
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <label className="text-sm font-medium text-slate-600">Month</label>
+              <input
+                type="month"
+                value={month}
+                onChange={(e) => setMonth(e.target.value)}
                 className="rounded-xl border border-slate-200 bg-white px-3.5 py-2 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all"
               />
             </div>
@@ -200,9 +213,8 @@ function Attendance() {
         ))}
       </div>
 
-      {/* The status filter and export apply to the Daily report's record list;
-          the Monthly report is a grid of the whole month instead. */}
-      {mode === "daily" && (
+      {/* The status filter, search box, and export apply to Daily and 30-Day Table reports */}
+      {(mode === "daily" || mode === "30days") && (
         <div className="flex flex-col sm:flex-row sm:items-center gap-3 mb-4">
           <select
             value={statusFilter}
@@ -220,6 +232,16 @@ function Attendance() {
             <option value="none">None</option>
           </select>
 
+          {mode === "30days" && (
+            <input
+              type="text"
+              placeholder="Search employee or department..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="rounded-xl border border-slate-200 bg-white px-3.5 py-2.5 text-sm focus:outline-none focus:border-brand-400 focus:ring-4 focus:ring-brand-500/15 transition-all w-full sm:w-64"
+            />
+          )}
+
           <div className="flex items-center gap-2 sm:ml-auto">
             <span className="text-sm font-medium text-slate-500">Export:</span>
             <Button color="green" onClick={() => handleExport("excel")}>Excel</Button>
@@ -233,6 +255,16 @@ function Attendance() {
 
       {!loading && !error && mode === "monthly" && (
         <MonthlyAttendanceGrid employees={employees} records={records} month={month} />
+      )}
+
+      {!loading && !error && mode === "30days" && (
+        <ThirtyDayAttendanceTable
+          employees={employees}
+          records={records}
+          month={month}
+          searchQuery={searchQuery}
+          statusFilter={statusFilter}
+        />
       )}
 
       {!loading && !error && mode === "daily" && (
