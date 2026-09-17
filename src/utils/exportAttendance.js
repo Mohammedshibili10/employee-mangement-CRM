@@ -24,7 +24,8 @@ function overtimeLabel(r) {
 // later than their start is "Late", at or before it is "On Time". No check-in
 // (leave/absent) -> blank. Falls back to 09:30 when no custom start is set.
 function startMinutes(r) {
-  const m = String(r.employee?.workStartTime || "09:30").match(/^(\d{1,2}):(\d{2})$/);
+  const timeStr = r.workStartTime || r.employee?.workStartTime || "09:30";
+  const m = String(timeStr).match(/^(\d{1,2}):(\d{2})$/);
   return m ? Number(m[1]) * 60 + Number(m[2]) : 9 * 60 + 30;
 }
 function lateStatus(r) {

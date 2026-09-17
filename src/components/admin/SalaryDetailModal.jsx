@@ -55,10 +55,10 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
   // Read-only view — all values come straight from the (system-computed) report.
   const sick = report.sickLeaveDays || 0;
   const casual = report.casualLeaveDays || 0;
-  const paidLeave = Math.min(sick, 1) + Math.min(casual, 1);
+  const paidLeave = report.paidLeaveDays != null ? report.paidLeaveDays : Math.min(report.leaveDays || (Math.min(sick, 1) + Math.min(casual, 1)), 2);
   const recordedLopDays = report.lopDays || 0;
   const fixedDeductions = DEDUCTIONS.reduce((sum, d) => sum + (Number(report[d.key]) || 0), 0);
-  const totalDeductions = (report.lopDeduction || 0) + fixedDeductions;
+  const totalDeductions = (report.lopDeduction || 0) + (report.employeeEsi || 0) + fixedDeductions;
   const perDay = report.monthlyWorkingDays > 0 ? report.monthlySalary / report.monthlyWorkingDays : 0;
   const pardonedAmount = Math.round(pardonedDays * perDay);
 
@@ -125,8 +125,8 @@ function SalaryDetailModal({ report, onClose, onSaved }) {
             label={`LOP Deduction${recordedLopDays > 0 ? ` (${recordedLopDays} day${recordedLopDays === 1 ? "" : "s"})` : ""}`}
             value={money(report.lopDeduction)}
           />
-          <Row label="Employee ESI" value={money(report.employeeEsi)} />
-          {DEDUCTIONS.map((d) => (
+          {report.employeeEsi > 0 && <Row label="Employee ESI" value={money(report.employeeEsi)} />}
+          {DEDUCTIONS.filter((d) => d.key !== "pfDeduction" || (report.pfDeduction > 0)).map((d) => (
             <Row key={d.key} label={d.label} value={money(report[d.key])} />
           ))}
           <div className="border-t border-slate-100 mt-1 pt-1">

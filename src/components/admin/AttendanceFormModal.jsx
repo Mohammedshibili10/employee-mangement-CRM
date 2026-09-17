@@ -424,6 +424,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                 disabled={singleIsLeave || single.status === "none"}
                 onChange={(e) => {
                   const checkIn = e.target.value;
+                  const assignedStart = editRecord?.workStartTime || selectedEmp?.workStartTime || "09:30";
                   setSingle((s) => {
                     // Auto-apply the late rule from the employee's assigned start,
                     // unless this is a Leave/WFH day (those keep their status).
@@ -431,7 +432,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                     return {
                       ...s,
                       checkIn,
-                      status: worked ? deriveWorkStatus(checkIn, selectedEmp?.workStartTime) : s.status,
+                      status: worked ? deriveWorkStatus(checkIn, assignedStart) : s.status,
                     };
                   });
                 }}
@@ -444,9 +445,9 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             </div>
           </div>
 
-          {selectedEmp && !singleIsLeave && (
+          {(selectedEmp || editRecord) && !singleIsLeave && (
             <p className="text-xs text-slate-500 mb-2">
-              Assigned hours: <span className="font-semibold text-slate-600">{selectedEmp.workStartTime || "09:30"} – {selectedEmp.workEndTime || "18:00"}</span>
+              Assigned hours: <span className="font-semibold text-slate-600">{editRecord?.workStartTime || selectedEmp?.workStartTime || "09:30"} – {editRecord?.workEndTime || selectedEmp?.workEndTime || "18:00"}</span>
               {" · "}status auto-set from check-in vs the start time (you can override it above).
             </p>
           )}
