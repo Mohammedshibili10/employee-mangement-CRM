@@ -131,6 +131,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
             wfhPardoned: ex ? (ex.wfhPardoned || false) : false,
             existingId: ex ? ex._id : null,
             existingStatus: ex ? ex.status : null,
+            workStartTime: ex?.workStartTime,
             orig: { status, checkIn, checkOut, leaveType, lop: lopNum, lopReason: ex ? (ex.lopReason || "") : "", wfhPardoned: ex ? (ex.wfhPardoned || false) : false },
           };
         });
@@ -421,14 +422,14 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
               <input
                 type="time"
                 value={single.checkIn}
-                disabled={singleIsLeave || single.status === "none"}
+                disabled={singleIsLeave}
                 onChange={(e) => {
                   const checkIn = e.target.value;
-                  const assignedStart = editRecord?.workStartTime || selectedEmp?.workStartTime || "09:30";
+                  const assignedStart = editRecord?.workStartTime || singleExisting?.workStartTime || selectedEmp?.workStartTime || "09:30";
                   setSingle((s) => {
                     // Auto-apply the late rule from the employee's assigned start,
                     // unless this is a Leave/WFH day (those keep their status).
-                    const worked = s.status !== "leave" && s.status !== "wfh" && s.status !== "holiday" && s.status !== "none";
+                    const worked = s.status !== "leave" && s.status !== "wfh" && s.status !== "holiday";
                     return {
                       ...s,
                       checkIn,
@@ -578,7 +579,7 @@ function AttendanceFormModal({ isOpen, onClose, employees, onSaved, editRecord }
                                 [emp._id]: {
                                   ...cur,
                                   checkIn,
-                                  status: worked ? deriveWorkStatus(checkIn, emp.workStartTime) : cur.status,
+                                  status: worked ? deriveWorkStatus(checkIn, cur.workStartTime || emp.workStartTime) : cur.status,
                                 },
                               };
                             });
